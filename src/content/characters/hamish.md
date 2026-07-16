@@ -5,6 +5,7 @@ ancestry: 'Wood Elf'
 class: 'Ranger'
 level: 2
 status: active
+portrait: '/images/characters/hamish.webp'
 tagline: 'Scout, mushroom enthusiast, and the one who recognized the Zhentarim pin.'
 traits: ['Scout', 'Mushroom Enthusiast', 'Knows the Zhentarim Mark']
 ---

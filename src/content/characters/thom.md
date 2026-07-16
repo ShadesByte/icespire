@@ -5,6 +5,7 @@ ancestry: 'Half-Elf'
 class: 'Sorcerer'
 level: 2
 status: active
+portrait: '/images/characters/thom.webp'
 tagline: 'Wild magic, smooth talk, and a face several years older than it was last month.'
 traits: ['Wild Magic', 'Party Negotiator', 'Crossbow Magnet', 'Recently Aged']
 ---

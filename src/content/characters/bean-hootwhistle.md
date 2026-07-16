@@ -5,6 +5,7 @@ ancestry: 'Halfling'
 class: 'Rogue'
 level: 2
 status: active
+portrait: '/images/characters/bean-hootwhistle.webp'
 tagline: '"I''m Bean!" Loves gold. Finds gold. Keeps gold.'
 traits: ['Loves Gold', 'Sneak Attacker', 'Unauthorized Visits']
 ---
