@@ -1,0 +1,32 @@
+---
+name: 'Thom'
+player: 'Nate'
+ancestry: 'Half-Elf'
+class: 'Sorcerer'
+level: 2
+status: active
+tagline: 'Wild magic, smooth talk, and a face several years older than it was last month.'
+traits: ['Wild Magic', 'Party Negotiator', 'Crossbow Magnet', 'Recently Aged']
+---
+
+Thom made a "friend" named "Friend" on the road to Phandalin and has been the
+party's talker ever since — when he isn't getting shot, kicked in the shins, or
+aged by his own spells.
+
+## Notable deeds
+
+- Kicked in the shins by the Gnomengarde baker for asking too many questions
+  (Session 2).
+- Shot by Facktoré's crossbow ballista, then put her to sleep with a spell
+  (Session 2).
+- Reassured the Gnomengarde guards that mimics can't turn into people
+  (Session 3).
+- Took a free healing potion to the face (thrown by Dax) while still bleeding
+  from the manticore fight (Session 5).
+- Negotiated the 60/40 treasure split with the dwarf prospectors — in the
+  party's favor (Session 5).
+- Lit the way into the Temple of Abbathor with Dancing Lights (Session 5).
+- Cast Magic Missile at an ochre jelly and triggered a Wild Magic Surge that
+  aged him several years. Actual stubble now (Session 5).
+- Current holder of the hidden gemstone coffer the dwarves don't know about
+  (Session 5).
