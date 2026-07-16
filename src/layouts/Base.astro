@@ -7,18 +7,20 @@ interface Props {
   description?: string;
 }
 
-const { title, description = 'Chronicle of our D&D campaign.' } = Astro.props;
+const { title, description = 'A chronicle of our Dragon of Icespire Peak campaign.' } =
+  Astro.props;
 
 const navItems = [
-  { href: '/sessions/', label: 'Sessions' },
-  { href: '/campaign/', label: 'Campaign' },
-  { href: '/characters/', label: 'Characters' },
-  { href: '/npcs/', label: 'NPCs' },
-  { href: '/factions/', label: 'Factions' },
-  { href: '/lore/', label: 'Lore' },
+  { href: '/sessions/', label: 'Recaps', match: ['/sessions/'] },
+  { href: '/campaign/', label: 'Campaign', match: ['/campaign/'] },
+  { href: '/characters/', label: 'Roster', match: ['/characters/'] },
+  { href: '/npcs/', label: 'NPCs', match: ['/npcs/'] },
+  { href: '/codex/', label: 'Codex', match: ['/codex/', '/factions/', '/lore/'] },
 ];
 
 const currentPath = Astro.url.pathname;
+const isActive = (item: (typeof navItems)[number]) =>
+  item.match.some((prefix) => currentPath.startsWith(url(prefix)));
 ---
 
 <html lang="en">
@@ -26,27 +28,52 @@ const currentPath = Astro.url.pathname;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <title>{title} · Icespire</title>
+    <title>{title} · Dragon of Icespire Peak</title>
+    <script is:inline>
+      // Apply saved theme before first paint to avoid a flash. Dark
+      // ("Night in the Wilds") is the default; light is "Snowfield".
+      if (localStorage.getItem('icespire-theme') === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    </script>
   </head>
   <body>
     <header class="site-header">
-      <a class="site-title" href={url('/')}>Icespire</a>
+      <a class="site-title" href={url('/')}>Dragon of <span class="gold">Icespire Peak</span></a>
       <nav class="site-nav">
         {
           navItems.map((item) => (
-            <a
-              href={url(item.href)}
-              aria-current={currentPath.startsWith(url(item.href)) ? 'page' : undefined}
-            >
+            <a href={url(item.href)} aria-current={isActive(item) ? 'page' : undefined}>
               {item.label}
             </a>
           ))
         }
       </nav>
+      <button class="theme-toggle" id="theme-toggle" type="button">Snowfield</button>
     </header>
-    <main>
+    <main class="page">
       <slot />
     </main>
     <footer class="site-footer">A chronicle kept by the party. Updated between sessions.</footer>
+    <script is:inline>
+      (() => {
+        const root = document.documentElement;
+        const button = document.getElementById('theme-toggle');
+        // The button names the theme it switches TO.
+        const label = () =>
+          root.getAttribute('data-theme') === 'light' ? 'Night in the Wilds' : 'Snowfield';
+        button.textContent = label();
+        button.addEventListener('click', () => {
+          const toLight = root.getAttribute('data-theme') !== 'light';
+          if (toLight) {
+            root.setAttribute('data-theme', 'light');
+          } else {
+            root.removeAttribute('data-theme');
+          }
+          localStorage.setItem('icespire-theme', toLight ? 'light' : 'dark');
+          button.textContent = label();
+        });
+      })();
+    </script>
   </body>
 </html>

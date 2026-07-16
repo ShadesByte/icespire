@@ -1,0 +1,19 @@
+---
+type Status = 'ally' | 'hostile' | 'unresolved' | 'neutral';
+
+interface Props {
+  status?: Status;
+  label?: string;
+}
+
+const defaultLabels: Record<Status, string> = {
+  ally: 'Ally',
+  hostile: 'Hostile',
+  unresolved: 'Unresolved Thread',
+  neutral: 'At Large',
+};
+
+const { status = 'neutral', label } = Astro.props;
+---
+
+<span class:list={['status-pill', status]}>{label ?? defaultLabels[status]}</span>

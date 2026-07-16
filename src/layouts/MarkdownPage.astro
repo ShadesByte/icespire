@@ -5,6 +5,7 @@ interface Props {
   frontmatter: {
     title: string;
     description?: string;
+    kicker?: string;
   };
 }
 
@@ -12,5 +13,8 @@ const { frontmatter } = Astro.props;
 ---
 
 <Base title={frontmatter.title} description={frontmatter.description}>
-  <slot />
+  {frontmatter.kicker && <div class="kicker">{frontmatter.kicker}</div>}
+  <div class="prose">
+    <slot />
+  </div>
 </Base>

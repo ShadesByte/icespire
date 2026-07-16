@@ -1,0 +1,26 @@
+---
+import StatusPill from './StatusPill.astro';
+
+interface Props {
+  name: string;
+  role?: string;
+  affiliation?: string;
+  status?: 'ally' | 'hostile' | 'unresolved' | 'neutral';
+  note?: string;
+  href?: string;
+}
+
+const { name, role, affiliation, status = 'neutral', note, href } = Astro.props;
+const roleLine = [role, affiliation].filter(Boolean).join(' · ');
+---
+
+<li class="npc-entry">
+  <div>
+    <div class="npc-name">
+      {href ? <a href={href}>{name}</a> : name}
+    </div>
+    {roleLine && <div class="npc-role">{roleLine}</div>}
+    {note && <div class="npc-note">{note}</div>}
+  </div>
+  <StatusPill status={status} />
+</li>

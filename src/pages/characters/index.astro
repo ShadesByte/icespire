@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import CharacterCard from '../../components/CharacterCard.astro';
 import { url } from '../../utils/url';
 
 const characters = (await getCollection('characters')).sort((a, b) =>
@@ -8,26 +9,26 @@ const characters = (await getCollection('characters')).sort((a, b) =>
 );
 ---
 
-<Base title="Characters" description="The player characters of the campaign.">
-  <h1>The Party</h1>
+<Base title="Party Roster" description="The player characters of the campaign.">
+  <h1 class="page-title">Party Roster</h1>
   {
     characters.length === 0 ? (
-      <p>No characters yet.</p>
+      <p class="prose">No characters yet.</p>
     ) : (
-      <ul class="entry-list">
+      <div class="roster-grid">
         {characters.map((character) => (
-          <li>
-            <a href={url(`/characters/${character.id}/`)}>{character.data.name}</a>
-            <div class="meta">
-              {character.data.ancestry} {character.data.class}
-              {character.data.level ? ` (level ${character.data.level})` : ''} · played by{' '}
-              {character.data.player}
-              {character.data.status !== 'active' ? ` · ${character.data.status}` : ''}
-            </div>
-            {character.data.tagline && <p>{character.data.tagline}</p>}
-          </li>
+          <CharacterCard
+            name={character.data.name}
+            player={character.data.player}
+            classRace={`${character.data.ancestry} ${character.data.class}`}
+            portrait={character.data.portrait ? url(character.data.portrait) : undefined}
+            bio={character.data.tagline}
+            traits={character.data.traits}
+            href={url(`/characters/${character.id}/`)}
+            variant="roster"
+          />
         ))}
-      </ul>
+      </div>
     )
   }
 </Base>

@@ -1,0 +1,16 @@
+---
+interface Props {
+  title: string;
+  kicker?: string;
+  variant?: 'panel' | 'sidebar';
+  href?: string;
+}
+
+const { title, kicker = 'Codex', variant = 'panel', href } = Astro.props;
+---
+
+<article class:list={['faction-panel', { sidebar: variant === 'sidebar' }]}>
+  <div class="kicker">{kicker}</div>
+  <h3>{href ? <a href={href}>{title}</a> : title}</h3>
+  <div class="panel-body"><slot /></div>
+</article>

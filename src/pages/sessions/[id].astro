@@ -9,13 +9,25 @@ export async function getStaticPaths() {
 
 const { session } = Astro.props;
 const { Content } = await render(session);
+const dateStr = session.data.date.toLocaleDateString('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
 ---
 
 <Base title={`Session ${session.data.sessionNumber}: ${session.data.title}`}>
-  <h1>Session {session.data.sessionNumber}: {session.data.title}</h1>
-  <p class="meta">
-    {session.data.date.toLocaleDateString('en-US', { dateStyle: 'long' })}
-    {session.data.playersPresent.length > 0 && ` · At the table: ${session.data.playersPresent.join(', ')}`}
-  </p>
-  <Content />
+  <div class="recap-kicker">
+    Session {session.data.sessionNumber}
+    <span class="date">{dateStr}</span>
+  </div>
+  <h1 class="session-title">{session.data.title}</h1>
+  {
+    session.data.playersPresent.length > 0 && (
+      <p class="session-meta">At the table: {session.data.playersPresent.join(', ')}</p>
+    )
+  }
+  <div class="prose">
+    <Content />
+  </div>
 </Base>

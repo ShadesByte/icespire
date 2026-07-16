@@ -1,0 +1,22 @@
+---
+type Kind = 'loot' | 'magic-item' | 'house-rule';
+
+interface Props {
+  kind?: Kind;
+  title?: string;
+}
+
+const labels: Record<Kind, string> = {
+  loot: 'Loot',
+  'magic-item': 'Magic Item',
+  'house-rule': 'House Rule',
+};
+
+const { kind = 'loot', title } = Astro.props;
+---
+
+<aside class:list={['callout', kind]}>
+  <div class="callout-label">{labels[kind]}</div>
+  {title && <div class="callout-title">{title}</div>}
+  <div class="callout-body"><slot /></div>
+</aside>

@@ -1,0 +1,41 @@
+---
+interface Props {
+  name: string;
+  player: string;
+  classRace: string;
+  portrait?: string;
+  bio?: string;
+  traits?: string[];
+  href?: string;
+  variant?: 'roster' | 'page';
+}
+
+const { name, player, classRace, portrait, bio, traits = [], href, variant = 'roster' } =
+  Astro.props;
+---
+
+<article class:list={['card', 'character-card', { page: variant === 'page' }]}>
+  <div
+    class="portrait"
+    style={portrait ? `background-image:url(${portrait})` : undefined}
+  >
+    {!portrait && 'Portrait'}
+  </div>
+  <div class="char-body">
+    <div class="char-name">
+      {href ? <a href={href}>{name}</a> : name}
+    </div>
+    <div class="char-class">{classRace}</div>
+    <div class="char-player">Played by {player}</div>
+    {bio && <p class="char-bio">{bio}</p>}
+    {
+      traits.length > 0 && (
+        <div class="trait-list">
+          {traits.map((trait) => (
+            <span class="trait">{trait}</span>
+          ))}
+        </div>
+      )
+    }
+  </div>
+</article>

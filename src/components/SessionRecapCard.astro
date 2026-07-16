@@ -1,0 +1,25 @@
+---
+interface Props {
+  sessionNumber: number;
+  date: Date;
+  title: string;
+  excerpt?: string;
+  href: string;
+}
+
+const { sessionNumber, date, title, excerpt, href } = Astro.props;
+const dateStr = date.toLocaleDateString('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
+---
+
+<article class="card recap-card">
+  <div class="recap-kicker">
+    Session {sessionNumber}
+    <span class="date">{dateStr}</span>
+  </div>
+  <h2><a href={href}>{title}</a></h2>
+  {excerpt && <p class="excerpt">{excerpt}</p>}
+</article>

@@ -1,0 +1,14 @@
+:root{
+--font-display:'Cinzel',serif;
+--font-body:'Crimson Pro',Georgia,'Times New Roman',serif;
+--font-mono:'JetBrains Mono',ui-monospace,monospace;
+
+--text-xs:.8125rem;--text-sm:.9375rem;--text-base:1.0625rem;--text-md:1.1875rem;
+--text-lg:1.375rem;--text-xl:1.75rem;--text-2xl:2.125rem;--text-3xl:2.625rem;--text-4xl:3.375rem;--text-5xl:4.25rem;
+
+--leading-tight:1.15;--leading-snug:1.35;--leading-normal:1.5;--leading-relaxed:1.72;
+
+--tracking-tight:-.01em;--tracking-normal:0;--tracking-wide:.04em;--tracking-wider:.12em;
+
+--weight-regular:400;--weight-medium:500;--weight-semibold:600;--weight-bold:700;
+}

@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import CharacterCard from '../../components/CharacterCard.astro';
 import { url } from '../../utils/url';
 
 export async function getStaticPaths() {
@@ -13,23 +14,21 @@ export async function getStaticPaths() {
 
 const { character } = Astro.props;
 const { Content } = await render(character);
+const statusNote =
+  character.data.status !== 'active' ? ` (${character.data.status})` : '';
 ---
 
 <Base title={character.data.name}>
-  <h1>{character.data.name}</h1>
-  <p class="meta">
-    {character.data.ancestry} {character.data.class}
-    {character.data.level ? ` (level ${character.data.level})` : ''} · played by{' '}
-    {character.data.player} · {character.data.status}
-  </p>
-  {
-    character.data.portrait && (
-      <img
-        src={url(character.data.portrait)}
-        alt={`Portrait of ${character.data.name}`}
-        style="max-width: 16rem;"
-      />
-    )
-  }
-  <Content />
+  <CharacterCard
+    name={`${character.data.name}${statusNote}`}
+    player={character.data.player}
+    classRace={`${character.data.ancestry} ${character.data.class}${character.data.level ? ` · Level ${character.data.level}` : ''}`}
+    portrait={character.data.portrait ? url(character.data.portrait) : undefined}
+    bio={character.data.tagline}
+    traits={character.data.traits}
+    variant="page"
+  />
+  <div class="prose" style="margin-top: var(--space-6);">
+    <Content />
+  </div>
 </Base>

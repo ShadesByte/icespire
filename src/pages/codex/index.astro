@@ -1,0 +1,51 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import FactionPanel from '../../components/FactionPanel.astro';
+import { url } from '../../utils/url';
+
+const factions = (await getCollection('factions')).sort((a, b) =>
+  a.data.name.localeCompare(b.data.name)
+);
+const lore = (await getCollection('lore')).sort((a, b) =>
+  a.data.title.localeCompare(b.data.title)
+);
+---
+
+<Base title="Faction & Lore Codex" description="The powers, places, and mysteries of the campaign.">
+  <h1 class="page-title">Faction &amp; Lore Codex</h1>
+  {
+    factions.length === 0 && lore.length === 0 ? (
+      <p class="prose">The codex is empty. Nothing is known. Yet.</p>
+    ) : (
+      <div class="codex-grid">
+        <div class="codex-col">
+          {factions.map((faction) => (
+            <FactionPanel
+              title={faction.data.name}
+              kicker="Faction"
+              href={url(`/factions/${faction.id}/`)}
+            >
+              {faction.data.summary && <p>{faction.data.summary}</p>}
+              <p>
+                Status: {[faction.data.status, faction.data.alignment].filter(Boolean).join(', ')}.
+              </p>
+            </FactionPanel>
+          ))}
+        </div>
+        <div class="codex-col">
+          {lore.map((entry) => (
+            <FactionPanel
+              title={entry.data.title}
+              kicker={entry.data.category}
+              variant="sidebar"
+              href={url(`/lore/${entry.id}/`)}
+            >
+              {entry.data.summary && <p>{entry.data.summary}</p>}
+            </FactionPanel>
+          ))}
+        </div>
+      </div>
+    )
+  }
+</Base>

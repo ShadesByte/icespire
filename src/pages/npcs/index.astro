@@ -1,27 +1,28 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import NpcEntry from '../../components/NpcEntry.astro';
 import { url } from '../../utils/url';
 
 const npcs = (await getCollection('npcs')).sort((a, b) => a.data.name.localeCompare(b.data.name));
 ---
 
 <Base title="NPC Directory" description="Everyone the party has met.">
-  <h1>NPC Directory</h1>
+  <h1 class="page-title">NPC Directory</h1>
   {
     npcs.length === 0 ? (
-      <p>No NPCs recorded yet.</p>
+      <p class="prose">No NPCs recorded yet.</p>
     ) : (
-      <ul class="entry-list">
+      <ul class="npc-list">
         {npcs.map((npc) => (
-          <li>
-            <a href={url(`/npcs/${npc.id}/`)}>{npc.data.name}</a>
-            <div class="meta">
-              {[npc.data.role, npc.data.location, npc.data.status !== 'alive' ? npc.data.status : null]
-                .filter(Boolean)
-                .join(' · ')}
-            </div>
-          </li>
+          <NpcEntry
+            name={npc.data.name}
+            role={npc.data.role}
+            affiliation={npc.data.affiliation}
+            status={npc.data.status}
+            note={npc.data.note}
+            href={url(`/npcs/${npc.id}/`)}
+          />
         ))}
       </ul>
     )

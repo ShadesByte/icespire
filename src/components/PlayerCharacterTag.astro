@@ -1,0 +1,13 @@
+---
+interface Props {
+  character: string;
+  player: string;
+  size?: 'sm' | 'md';
+}
+
+const { character, player, size = 'md' } = Astro.props;
+---
+
+<span class:list={['pc-tag', { sm: size === 'sm' }]}>
+  <span class="pc-character">{character}</span><span class="pc-dash"> — played by </span>{player}
+</span>

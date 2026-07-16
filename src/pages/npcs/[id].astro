@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import StatusPill from '../../components/StatusPill.astro';
 import { url } from '../../utils/url';
 
 export async function getStaticPaths() {
@@ -10,20 +11,27 @@ export async function getStaticPaths() {
 
 const { npc } = Astro.props;
 const { Content } = await render(npc);
+const roleLine = [npc.data.role, npc.data.affiliation].filter(Boolean).join(' · ');
 ---
 
 <Base title={npc.data.name}>
-  <h1>{npc.data.name}</h1>
-  <p class="meta">
-    {[npc.data.role, npc.data.location, `status: ${npc.data.status}`].filter(Boolean).join(' · ')}
-    {npc.data.firstAppearance != null && ` · first appeared in session ${npc.data.firstAppearance}`}
+  <div class="kicker">NPC</div>
+  <h1 class="page-title" style="margin-bottom: var(--space-3);">{npc.data.name}</h1>
+  <p class="session-meta" style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
+    {roleLine && <span>{roleLine}</span>}
+    <StatusPill status={npc.data.status} />
+    {npc.data.firstAppearance != null && (
+      <span>First appeared in session {npc.data.firstAppearance}</span>
+    )}
   </p>
   {
     npc.data.faction && (
-      <p class="meta">
+      <p class="session-meta">
         Faction: <a href={url(`/factions/${npc.data.faction}/`)}>{npc.data.faction}</a>
       </p>
     )
   }
-  <Content />
+  <div class="prose">
+    <Content />
+  </div>
 </Base>

@@ -30,7 +30,10 @@ const characters = defineCollection({
     status: z.enum(['active', 'retired', 'dead', 'missing']).default('active'),
     // Path under /public, e.g. /images/characters/rook.jpg
     portrait: z.string().optional(),
+    // One-line bio shown on the roster card ("Builds things that mostly work.")
     tagline: z.string().optional(),
+    // Short descriptors rendered as pills ("Tinkerer", "Afraid of Dragons")
+    traits: z.array(z.string()).default([]),
   }),
 });
 
@@ -38,10 +41,14 @@ const npcs = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/npcs' }),
   schema: z.object({
     name: z.string(),
-    role: z.string().optional(), // e.g. "Blacksmith of Phandalin"
-    location: z.string().optional(),
-    faction: z.string().optional(), // slug of a faction entry, if any
-    status: z.enum(['alive', 'dead', 'unknown']).default('alive'),
+    role: z.string().optional(), // e.g. "Innkeeper", "White Dragon"
+    affiliation: z.string().optional(), // shown next to role: place, group, or faction name
+    faction: z.string().optional(), // slug of a faction entry, for linking
+    // Disposition toward the party (drives the status pill):
+    // neutral renders as "At Large", unresolved as "Unresolved Thread".
+    status: z.enum(['ally', 'hostile', 'unresolved', 'neutral']).default('neutral'),
+    // Short directory blurb ("Means well. Is in over his head.")
+    note: z.string().optional(),
     firstAppearance: z.number().int().optional(), // session number
     portrait: z.string().optional(),
   }),

@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import SessionRecapCard from '../../components/SessionRecapCard.astro';
 import { url } from '../../utils/url';
 
 const sessions = (await getCollection('sessions', ({ data }) => !data.draft)).sort(
@@ -8,25 +9,23 @@ const sessions = (await getCollection('sessions', ({ data }) => !data.draft)).so
 );
 ---
 
-<Base title="Sessions" description="Recaps of every session, newest first.">
-  <h1>Session Recaps</h1>
+<Base title="Session Recaps" description="Recaps of every session, newest first.">
+  <h1 class="page-title">Session Recaps</h1>
   {
     sessions.length === 0 ? (
-      <p>No sessions yet.</p>
+      <p class="prose">No sessions yet.</p>
     ) : (
-      <ul class="entry-list">
+      <div class="recap-feed">
         {sessions.map((session) => (
-          <li>
-            <a href={url(`/sessions/${session.id}/`)}>
-              Session {session.data.sessionNumber}: {session.data.title}
-            </a>
-            <div class="meta">
-              {session.data.date.toLocaleDateString('en-US', { dateStyle: 'long' })}
-            </div>
-            {session.data.summary && <p>{session.data.summary}</p>}
-          </li>
+          <SessionRecapCard
+            sessionNumber={session.data.sessionNumber}
+            date={session.data.date}
+            title={session.data.title}
+            excerpt={session.data.summary}
+            href={url(`/sessions/${session.id}/`)}
+          />
         ))}
-      </ul>
+      </div>
     )
   }
 </Base>

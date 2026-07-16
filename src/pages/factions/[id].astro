@@ -9,14 +9,16 @@ export async function getStaticPaths() {
 
 const { faction } = Astro.props;
 const { Content } = await render(faction);
+const metaLine = [faction.data.type, faction.data.alignment, faction.data.status]
+  .filter(Boolean)
+  .join(' · ');
 ---
 
 <Base title={faction.data.name}>
-  <h1>{faction.data.name}</h1>
-  <p class="meta">
-    {[faction.data.type, faction.data.alignment, `status: ${faction.data.status}`]
-      .filter(Boolean)
-      .join(' · ')}
-  </p>
-  <Content />
+  <div class="kicker">Faction</div>
+  <h1 class="page-title" style="margin-bottom: var(--space-3);">{faction.data.name}</h1>
+  {metaLine && <p class="session-meta">{metaLine}</p>}
+  <div class="prose">
+    <Content />
+  </div>
 </Base>
