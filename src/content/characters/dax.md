@@ -5,6 +5,7 @@ ancestry: 'Human'
 class: 'Fighter'
 level: 2
 status: active
+portrait: '/images/characters/dax.webp'
 tagline: 'Follows the coin. The coin is currently in Phandalin.'
 traits: ['Mercenary', 'Speaks Dwarvish', 'Champion at Level 3', 'True Neutral']
 ---

@@ -5,6 +5,7 @@ ancestry: 'Dragonborn'
 class: 'Paladin'
 level: 2
 status: active
+portrait: '/images/characters/barnaby.webp'
 tagline: 'Breath weapon up front, Lay on Hands in the back.'
 traits: ["Dragon's Breath", 'Shield of the Party', 'Front Line']
 ---

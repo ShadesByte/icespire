@@ -5,6 +5,7 @@ ancestry: 'Wood Elf'
 class: 'Ranger'
 level: 2
 status: active
+portrait: '/images/characters/sage.webp'
 tagline: 'Would rather soothe the beast. Will shoot it through the eye if she must.'
 traits: ['Sharpshooter', 'Scout', 'Dual Daggers']
 ---

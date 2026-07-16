@@ -5,6 +5,7 @@ ancestry: 'Forest Gnome'
 class: 'Druid'
 level: 2
 status: active
+portrait: '/images/characters/rut.webp'
 tagline: 'The party knows him only as "Friend." That is not his name.'
 traits: ['Goes by "Friend"', 'Wild Shaper', 'Frees Prisoners', 'Carries a Cursed-Looking Necklace']
 ---
