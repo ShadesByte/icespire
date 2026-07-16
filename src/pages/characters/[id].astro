@@ -1,0 +1,35 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { url } from '../../utils/url';
+
+export async function getStaticPaths() {
+  const characters = await getCollection('characters');
+  return characters.map((character) => ({
+    params: { id: character.id },
+    props: { character },
+  }));
+}
+
+const { character } = Astro.props;
+const { Content } = await render(character);
+---
+
+<Base title={character.data.name}>
+  <h1>{character.data.name}</h1>
+  <p class="meta">
+    {character.data.ancestry} {character.data.class}
+    {character.data.level ? ` (level ${character.data.level})` : ''} · played by{' '}
+    {character.data.player} · {character.data.status}
+  </p>
+  {
+    character.data.portrait && (
+      <img
+        src={url(character.data.portrait)}
+        alt={`Portrait of ${character.data.name}`}
+        style="max-width: 16rem;"
+      />
+    )
+  }
+  <Content />
+</Base>

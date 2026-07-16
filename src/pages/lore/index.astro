@@ -1,0 +1,35 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { url } from '../../utils/url';
+
+const entries = await getCollection('lore');
+
+const categories = [...new Set(entries.map((entry) => entry.data.category))].sort();
+---
+
+<Base title="Lore" description="Places, history, and mysteries of the world.">
+  <h1>Lore</h1>
+  {
+    entries.length === 0 ? (
+      <p>No lore recorded yet.</p>
+    ) : (
+      categories.map((category) => (
+        <section>
+          <h2>{category}</h2>
+          <ul class="entry-list">
+            {entries
+              .filter((entry) => entry.data.category === category)
+              .sort((a, b) => a.data.title.localeCompare(b.data.title))
+              .map((entry) => (
+                <li>
+                  <a href={url(`/lore/${entry.id}/`)}>{entry.data.title}</a>
+                  {entry.data.summary && <p>{entry.data.summary}</p>}
+                </li>
+              ))}
+          </ul>
+        </section>
+      ))
+    )
+  }
+</Base>

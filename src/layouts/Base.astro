@@ -1,0 +1,52 @@
+---
+import { url } from '../utils/url';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'Chronicle of our D&D campaign.' } = Astro.props;
+
+const navItems = [
+  { href: '/sessions/', label: 'Sessions' },
+  { href: '/campaign/', label: 'Campaign' },
+  { href: '/characters/', label: 'Characters' },
+  { href: '/npcs/', label: 'NPCs' },
+  { href: '/factions/', label: 'Factions' },
+  { href: '/lore/', label: 'Lore' },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title} · Icespire</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="site-title" href={url('/')}>Icespire</a>
+      <nav class="site-nav">
+        {
+          navItems.map((item) => (
+            <a
+              href={url(item.href)}
+              aria-current={currentPath.startsWith(url(item.href)) ? 'page' : undefined}
+            >
+              {item.label}
+            </a>
+          ))
+        }
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="site-footer">A chronicle kept by the party. Updated between sessions.</footer>
+  </body>
+</html>

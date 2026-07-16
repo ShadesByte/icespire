@@ -1,0 +1,29 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { url } from '../../utils/url';
+
+export async function getStaticPaths() {
+  const npcs = await getCollection('npcs');
+  return npcs.map((npc) => ({ params: { id: npc.id }, props: { npc } }));
+}
+
+const { npc } = Astro.props;
+const { Content } = await render(npc);
+---
+
+<Base title={npc.data.name}>
+  <h1>{npc.data.name}</h1>
+  <p class="meta">
+    {[npc.data.role, npc.data.location, `status: ${npc.data.status}`].filter(Boolean).join(' · ')}
+    {npc.data.firstAppearance != null && ` · first appeared in session ${npc.data.firstAppearance}`}
+  </p>
+  {
+    npc.data.faction && (
+      <p class="meta">
+        Faction: <a href={url(`/factions/${npc.data.faction}/`)}>{npc.data.faction}</a>
+      </p>
+    )
+  }
+  <Content />
+</Base>

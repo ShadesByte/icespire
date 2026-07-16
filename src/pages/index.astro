@@ -1,0 +1,37 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { url } from '../utils/url';
+
+const sessions = (await getCollection('sessions', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.sessionNumber - a.data.sessionNumber
+);
+const latest = sessions[0];
+---
+
+<Base title="Home">
+  <h1>The Icespire Campaign</h1>
+  <p>
+    Session recaps, a running campaign summary, character profiles, an NPC directory, and
+    faction &amp; lore pages for our table.
+  </p>
+
+  {
+    latest ? (
+      <section>
+        <h2>Latest session</h2>
+        <ul class="entry-list">
+          <li>
+            <a href={url(`/sessions/${latest.id}/`)}>
+              Session {latest.data.sessionNumber}: {latest.data.title}
+            </a>
+            <div class="meta">{latest.data.date.toLocaleDateString('en-US', { dateStyle: 'long' })}</div>
+            {latest.data.summary && <p>{latest.data.summary}</p>}
+          </li>
+        </ul>
+      </section>
+    ) : (
+      <p>No sessions recorded yet. The tale has yet to begin.</p>
+    )
+  }
+</Base>

@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { url } from '../../utils/url';
+
+const characters = (await getCollection('characters')).sort((a, b) =>
+  a.data.name.localeCompare(b.data.name)
+);
+---
+
+<Base title="Characters" description="The player characters of the campaign.">
+  <h1>The Party</h1>
+  {
+    characters.length === 0 ? (
+      <p>No characters yet.</p>
+    ) : (
+      <ul class="entry-list">
+        {characters.map((character) => (
+          <li>
+            <a href={url(`/characters/${character.id}/`)}>{character.data.name}</a>
+            <div class="meta">
+              {character.data.ancestry} {character.data.class}
+              {character.data.level ? ` (level ${character.data.level})` : ''} · played by{' '}
+              {character.data.player}
+              {character.data.status !== 'active' ? ` · ${character.data.status}` : ''}
+            </div>
+            {character.data.tagline && <p>{character.data.tagline}</p>}
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</Base>
