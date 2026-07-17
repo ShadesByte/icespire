@@ -750,9 +750,25 @@ body {
   opacity: 0.9;
 }
 
-.m-ridge-wash {
+.m-mass {
   fill: var(--map-peak-fill);
-  opacity: 0.55;
+  stroke: var(--map-ridge);
+  stroke-width: 0.8;
+  opacity: 0.7;
+}
+
+.m-scrub {
+  fill: none;
+  stroke: var(--map-ridge);
+  stroke-width: 1;
+  opacity: 0.45;
+}
+
+.m-hex {
+  fill: none;
+  stroke: var(--map-contour);
+  stroke-width: 0.7;
+  opacity: 0.5;
 }
 
 .m-sheet {

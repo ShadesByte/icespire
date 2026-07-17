@@ -1,7 +1,7 @@
 ---
 name: 'Loggers’ Camp'
-x: 404
-y: 56
+x: 402
+y: 32
 kind: camp
 status: unknown
 labelPlacement: left

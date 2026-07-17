@@ -1,7 +1,7 @@
 ---
 name: 'Orc Encampment'
-x: 450
-y: 664
+x: 466
+y: 640
 kind: camp
 status: known
 danger: true
