@@ -14,6 +14,8 @@ export interface MapViewerConfig {
   zoomInBtn?: HTMLElement | null;
   zoomOutBtn?: HTMLElement | null;
   resetBtn?: HTMLElement | null;
+  /** Called with the current zoom factor (1 = full view) whenever it changes. */
+  onZoom?: (scale: number) => void;
 }
 
 export interface MapViewer {
@@ -39,6 +41,7 @@ export function initMapViewer(config: MapViewerConfig): MapViewer {
     vb.y = Math.min(Math.max(vb.y, BASE.y - 60), Math.max(maxY, BASE.y - 60));
     svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
     hideTip();
+    config.onZoom?.(BASE.w / vb.w);
   }
 
   function clientToMap(clientX: number, clientY: number) {
@@ -139,6 +142,8 @@ export function initMapViewer(config: MapViewerConfig): MapViewer {
     });
     el.addEventListener('pointerleave', hideTip);
   }
+
+  config.onZoom?.(1);
 
   return {
     wasDrag: () => dragDistance > 5,

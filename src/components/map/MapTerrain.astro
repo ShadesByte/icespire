@@ -57,7 +57,7 @@ const hills: [number, number, number][] = [
   [510, 578, 0.7], [472, 566, 0.6],
   // Open country northeast, toward the Starmetal Hills
   [668, 302, 0.8], [726, 330, 0.9], [786, 300, 0.8], [842, 322, 0.9],
-  [920, 240, 0.8], [946, 300, 0.9], [910, 140, 0.8], [950, 80, 0.7],
+  [920, 240, 0.8], [946, 300, 0.9], [898, 152, 0.8], [936, 128, 0.7],
 ];
 
 // Marsh tufts of the Mere of Dead Men as [x, y, scale].
@@ -85,6 +85,38 @@ const marshes: [number, number, number][] = [
   <!-- Land -->
   <rect class="m-land" x="0" y="0" width="1000" height="750"></rect>
 
+  <!-- Forest canopies: the woods as masses, with tree glyphs on top -->
+  <path
+    class="m-canopy"
+    d="M 300 0
+       C 290 40 300 80 320 104
+       C 350 140 390 150 396 180
+       C 402 226 430 262 470 284
+       C 510 304 550 296 566 268
+       C 586 234 570 200 596 172
+       C 626 140 680 150 710 120
+       C 736 96 742 50 748 0
+       Z"></path>
+  <path
+    class="m-canopy"
+    d="M 1000 560
+       C 950 570 900 580 870 600
+       C 830 626 800 640 776 668
+       C 756 690 760 720 776 750
+       L 1000 750 Z"></path>
+
+  <!-- The Sword Mountains as a mass beneath the peaks -->
+  <path
+    class="m-ridge-wash"
+    d="M 870 320
+       C 920 370 915 450 875 510
+       C 835 570 770 610 705 650
+       C 655 680 575 700 515 695
+       C 465 690 440 660 465 625
+       C 495 585 545 570 585 540
+       C 635 500 675 460 715 425
+       C 755 390 810 350 870 320 Z"></path>
+
   <!-- Faint contour hints in the open country -->
   <g class="m-contour">
     <path d="M 210 470 C 265 490 320 482 365 502"></path>
@@ -105,6 +137,17 @@ const marshes: [number, number, number][] = [
        C 218 640 226 646 232 688
        C 238 716 244 730 248 750
        L 0 750 L 0 0 Z"></path>
+  <!-- Deeper water offshore -->
+  <path
+    class="m-sea-deep"
+    d="M 0 0 L 20 0
+       C 36 90 56 150 66 210
+       C 80 280 92 300 100 352
+       C 114 420 122 412 128 472
+       C 138 530 148 536 156 592
+       C 166 640 172 646 178 688
+       C 182 716 186 730 190 750
+       L 0 750 Z"></path>
   <path
     class="m-shore"
     d="M 46 0
@@ -204,6 +247,13 @@ const marshes: [number, number, number][] = [
     <text transform="translate(146 372) rotate(76)">The High Road</text>
     <text class="m-label-sm" transform="translate(222 690)">Mere of Dead Men</text>
     <text class="m-label-forest" transform="translate(800 700) rotate(-20)">Kryptgarden Forest</text>
+  </g>
+
+  <!-- Map sheet border and title -->
+  <rect class="m-sheet" x="12" y="12" width="976" height="726" rx="6"></rect>
+  <g class="m-title" text-anchor="end">
+    <text class="m-title-main" x="896" y="52">The Phandalin Region</text>
+    <text class="m-title-sub" x="896" y="74">as charted by the party</text>
   </g>
 
   <!-- Compass, out over the open sea -->

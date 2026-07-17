@@ -23,31 +23,85 @@ function requireLoc(slug: string, context: string) {
   return loc;
 }
 
-// ---- Party route: unique segments between consecutive stops, gently bowed
-// so overlapping back-and-forth legs read as one hand-drawn trail.
-function curvedEdge(a: { x: number; y: number }, b: { x: number; y: number }, i: number) {
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const len = Math.hypot(dx, dy) || 1;
-  const bow = Math.min(0.14 * len, 20) * (i % 2 === 0 ? 1 : -1);
-  const cx = (a.x + b.x) / 2 - (dy / len) * bow;
-  const cy = (a.y + b.y) / 2 + (dx / len) * bow;
-  return `M ${a.x} ${a.y} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${b.x} ${b.y}`;
+// ---- Party route, drawn chronologically: every traversal of a stretch is
+// its own gently-bowed arc, so an out-and-back trip renders as two parallel
+// curves with opposing chevrons — the journey reads in story order.
+// Later sessions draw brighter; the newest leg is the boldest.
+interface Traversal {
+  d: string;
+  midX: number;
+  midY: number;
+  tagX: number;
+  tagY: number;
+  angle: number;
+  session: number;
+  opacity: number;
+  latest: boolean;
 }
 
-const edgeKeys = new Set<string>();
-const routePaths: string[] = [];
+const repCount = new Map<string, number>();
+const routeSessions = journey
+  .filter((leg) => leg.data.route.length > 1)
+  .map((leg) => leg.data.session);
+const lastRouteSession = routeSessions[routeSessions.length - 1] ?? 0;
+const rankDenom = Math.max(1, routeSessions.length - 1);
+const traversals: Traversal[] = [];
+
 for (const leg of journey) {
   const stops = leg.data.route.map((slug) =>
     requireLoc(slug, `journey session ${leg.data.session} route`)
   );
   for (let i = 0; i < stops.length - 1; i++) {
-    const key = [stops[i].id, stops[i + 1].id].sort().join('|');
-    if (edgeKeys.has(key)) continue;
-    edgeKeys.add(key);
-    routePaths.push(curvedEdge(stops[i].data, stops[i + 1].data, routePaths.length));
+    const a = stops[i];
+    const b = stops[i + 1];
+    const key = [a.id, b.id].sort().join('|');
+    const rep = repCount.get(key) ?? 0;
+    repCount.set(key, rep + 1);
+
+    const dx = b.data.x - a.data.x;
+    const dy = b.data.y - a.data.y;
+    const len = Math.hypot(dx, dy) || 1;
+    // First pass bows one way, the return trip the other, a third pass bows
+    // wider — computed against a canonical orientation so the sides hold no
+    // matter which way the party walked it.
+    const orient = a.id < b.id ? 1 : -1;
+    const side = rep === 0 ? 1 : rep === 1 ? -1 : 1.9;
+    const bow = Math.min(0.13 * len, 16) * side * orient;
+    const cx = (a.data.x + b.data.x) / 2 - (dy / len) * bow;
+    const cy = (a.data.y + b.data.y) / 2 + (dx / len) * bow;
+
+    const midX = 0.25 * a.data.x + 0.5 * cx + 0.25 * b.data.x;
+    const midY = 0.25 * a.data.y + 0.5 * cy + 0.25 * b.data.y;
+    const chordMidX = (a.data.x + b.data.x) / 2;
+    const chordMidY = (a.data.y + b.data.y) / 2;
+    let tagX = midX + (midX - chordMidX) * 2.4;
+    let tagY = midY + (midY - chordMidY) * 2.4;
+    if (Math.abs(midX - chordMidX) < 1 && Math.abs(midY - chordMidY) < 1) tagY -= 11;
+
+    const rank = routeSessions.indexOf(leg.data.session);
+    traversals.push({
+      d: `M ${a.data.x} ${a.data.y} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${b.data.x} ${b.data.y}`,
+      midX,
+      midY,
+      tagX,
+      tagY,
+      angle: (Math.atan2(dy, dx) * 180) / Math.PI,
+      session: leg.data.session,
+      opacity: 0.4 + 0.6 * (rank / rankDenom),
+      latest: leg.data.session === lastRouteSession,
+    });
   }
 }
+
+// Where the party currently stands: the last stop of the latest session
+// that recorded any travel.
+const latestLeg = [...journey].reverse().find((leg) => leg.data.route.length > 0);
+const currentLocation = latestLeg
+  ? requireLoc(
+      latestLeg.data.route[latestLeg.data.route.length - 1],
+      `journey session ${latestLeg.data.session} route`
+    )
+  : undefined;
 
 // ---- Events, grouped per location and pinned in a fan around the marker,
 // on whichever side the label doesn't occupy.
@@ -137,6 +191,7 @@ const entries = await Promise.all(
   <h1 class="page-title">Campaign Map</h1>
 
   <div class="map-layout">
+    <div class="map-main">
     <div class="map-frame" id="map-frame">
       <svg
         class="map-svg"
@@ -148,8 +203,37 @@ const entries = await Promise.all(
         <MapTerrain />
 
         <g class="map-route" aria-hidden="true">
-          {routePaths.map((d) => <path d={d} />)}
+          {traversals.map((t) => (
+            <g class:list={['map-route-leg', { latest: t.latest }]} style={`opacity:${t.opacity.toFixed(2)}`}>
+              <path class="leg" d={t.d} />
+              <path
+                class="map-route-chevron"
+                d="M -5 -4.5 L 4 0 L -5 4.5"
+                transform={`translate(${t.midX.toFixed(1)} ${t.midY.toFixed(1)}) rotate(${t.angle.toFixed(1)})`}
+              />
+            </g>
+          ))}
         </g>
+        <g class="map-route-tags" aria-hidden="true">
+          {traversals.map((t) => (
+            <text x={t.tagX.toFixed(1)} y={t.tagY.toFixed(1)}>
+              S{t.session}
+            </text>
+          ))}
+        </g>
+
+        {
+          currentLocation && (
+            <g
+              class="map-here"
+              transform={`translate(${currentLocation.data.x} ${currentLocation.data.y})`}
+              aria-hidden="true"
+            >
+              <circle class="here-pulse" r="13" />
+              <circle class="here-ring" r="11" />
+            </g>
+          )
+        }
 
         {
           entries.map(({ loc, pins }) => (
@@ -183,34 +267,39 @@ const entries = await Promise.all(
         }
 
         {
-          entries.map(({ loc }) => (
-            <g
-              class:list={[
-                'map-marker',
-                `s-${loc.data.status}`,
-                { danger: loc.data.danger },
-              ]}
-              transform={`translate(${loc.data.x} ${loc.data.y})`}
-              data-open={loc.id}
-              data-slug={loc.id}
-              data-tip-title={loc.data.name}
-              data-tip-sub={`${kindLabels[loc.data.kind]} · ${statusLabels[loc.data.status]}`}
-              tabindex="0"
-              role="button"
-              aria-label={`${loc.data.name} — ${kindLabels[loc.data.kind]}, ${statusLabels[loc.data.status]}`}
-            >
-              <circle class="ring" r="13" />
-              <circle class="dot" r="7" />
-              <text
-                class="map-label"
-                x={labelOffsets[loc.data.labelPlacement].x}
-                y={labelOffsets[loc.data.labelPlacement].y}
-                text-anchor={labelOffsets[loc.data.labelPlacement].anchor}
+          entries.map(({ loc }) => {
+            // Towns anchor the map; camps and other footnotes stay small so
+            // the busy stretches read cleanly.
+            const r = loc.data.kind === 'town' ? 8.5 : loc.data.kind === 'camp' ? 5.5 : 7;
+            return (
+              <g
+                class:list={[
+                  'map-marker',
+                  `s-${loc.data.status}`,
+                  { danger: loc.data.danger, minor: loc.data.kind === 'camp' },
+                ]}
+                transform={`translate(${loc.data.x} ${loc.data.y})`}
+                data-open={loc.id}
+                data-slug={loc.id}
+                data-tip-title={loc.data.name}
+                data-tip-sub={`${kindLabels[loc.data.kind]} · ${statusLabels[loc.data.status]}`}
+                tabindex="0"
+                role="button"
+                aria-label={`${loc.data.name} — ${kindLabels[loc.data.kind]}, ${statusLabels[loc.data.status]}`}
               >
-                {loc.data.name}
-              </text>
-            </g>
-          ))
+                <circle class="ring" r={r + 5.5} />
+                <circle class="dot" r={r} />
+                <text
+                  class="map-label"
+                  x={labelOffsets[loc.data.labelPlacement].x}
+                  y={labelOffsets[loc.data.labelPlacement].y}
+                  text-anchor={labelOffsets[loc.data.labelPlacement].anchor}
+                >
+                  {loc.data.name}
+                </text>
+              </g>
+            );
+          })
         }
       </svg>
 
@@ -223,6 +312,21 @@ const entries = await Promise.all(
         <div class="tip-title"></div>
         <div class="tip-sub"></div>
       </div>
+      <div class="map-zoom-note" aria-hidden="true">Zoom in to reveal session events</div>
+    </div>
+
+    {
+      entries.some((e) => e.hasLocalMap) && (
+        <nav class="map-quicklinks" aria-label="Local maps">
+          <span class="ql-label">Local maps</span>
+          {entries
+            .filter((e) => e.hasLocalMap)
+            .map(({ loc }) => (
+              <a href={url(`/map/${loc.id}/`)}>{loc.data.name}</a>
+            ))}
+        </nav>
+      )
+    }
     </div>
 
     <aside class="map-panel" id="map-panel" aria-live="polite">
@@ -235,11 +339,13 @@ const entries = await Promise.all(
           <li><span class="legend-dot danger"></span> Ember means danger</li>
           <li><span class="legend-pin"></span> Event — the number is the session</li>
           <li><span class="legend-pin battle"></span> Battle</li>
-          <li><span class="legend-route"></span> The party's route</li>
+          <li><span class="legend-route"></span> The party's route — chevrons point the way travelled; brighter legs are more recent, and paired arcs mean there and back</li>
+          <li><span class="legend-here"></span> Where the party now stands</li>
         </ul>
         <p class="map-panel-hint">
           Select a marker to read about a place — what happened there, and which
-          recaps tell the story. Scroll or pinch to zoom, drag to pan.
+          recaps tell the story. Scroll or pinch to zoom, drag to pan. Session
+          events stay tucked away until you zoom in.
         </p>
       </div>
       <div id="map-panel-detail" hidden></div>
@@ -271,7 +377,11 @@ const entries = await Promise.all(
             </div>
             {(hasLocalMap || loc.data.lore || faction) && (
               <p class="map-panel-links">
-                {hasLocalMap && <a href={url(`/map/${loc.id}/`)}>Local map →</a>}
+                {hasLocalMap && (
+                  <a class="map-btn" href={url(`/map/${loc.id}/`)}>
+                    Local map →
+                  </a>
+                )}
                 {loc.data.lore && (
                   <a href={url(`/lore/${loc.data.lore}/`)}>Codex entry →</a>
                 )}
@@ -328,6 +438,11 @@ const entries = await Promise.all(
     zoomInBtn: document.getElementById('map-zoom-in'),
     zoomOutBtn: document.getElementById('map-zoom-out'),
     resetBtn: document.getElementById('map-zoom-reset'),
+    // Session pins only fade in once the reader is actually looking closely —
+    // at the resting zoom they'd bury the markers.
+    onZoom: (scale) => {
+      svg.dataset.zoom = scale >= 1.6 ? 'in' : 'out';
+    },
   });
 
   // ---- Detail panel -----------------------------------------------------------
