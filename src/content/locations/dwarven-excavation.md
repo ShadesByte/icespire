@@ -1,11 +1,11 @@
 ---
 name: 'Dwarven Excavation'
-x: 260
-y: 515
+x: 424
+y: 644
 kind: dungeon
 status: visited
 firstVisited: 5
-labelPlacement: bottom
+labelPlacement: left
 summary: 'A buried temple of Abbathor, god of greed. The priests are still here. They are jellies now.'
 lore: 'temple-of-abbathor'
 ---

@@ -1,11 +1,11 @@
 ---
 name: 'Orc Encampment'
-x: 405
-y: 508
+x: 450
+y: 664
 kind: camp
 status: known
 danger: true
-labelPlacement: bottom
+labelPlacement: right
 summary: 'A large orc camp down a split trail. Spotted, scouted, and — for now — bypassed.'
 ---
 

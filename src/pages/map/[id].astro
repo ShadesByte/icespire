@@ -1,0 +1,101 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { submaps } from '../../components/map/submaps/registry';
+import { url } from '../../utils/url';
+
+// Local maps are published only for places the party has actually visited.
+// A location whose status is anything else keeps its sub-map in the repo,
+// unbuilt and unlinked, until the status flips to `visited`.
+export async function getStaticPaths() {
+  const locations = await getCollection('locations');
+  return locations
+    .filter((loc) => loc.data.status === 'visited' && loc.id in submaps)
+    .map((loc) => ({ params: { id: loc.id }, props: { location: loc } }));
+}
+
+const { location } = Astro.props;
+const submap = submaps[location.id];
+const { Component, width, height, scaleNote, legend } = submap;
+const { Content } = await render(location);
+
+const kindLabels: Record<string, string> = {
+  town: 'Town',
+  settlement: 'Settlement',
+  landmark: 'Landmark',
+  dungeon: 'Ruin',
+  camp: 'Camp',
+  lair: 'Lair',
+};
+---
+
+<Base
+  title={`${location.data.name} — Local Map`}
+  description={location.data.summary ?? `A local map of ${location.data.name}.`}
+>
+  <div class="kicker">Local map · {kindLabels[location.data.kind]}</div>
+  <h1 class="page-title" style="margin-bottom: var(--space-3);">{location.data.name}</h1>
+  <p class="session-meta">
+    <a href={url(`/map/#${location.id}`)}>← Back to the region map</a>
+    {scaleNote && <span> · {scaleNote}</span>}
+  </p>
+
+  <div class="map-frame" id="map-frame">
+    <svg
+      class="map-svg submap-svg"
+      id="map-svg"
+      viewBox={`0 0 ${width} ${height}`}
+      role="img"
+      aria-label={`Local map of ${location.data.name}`}
+    >
+      <Component />
+    </svg>
+    <div class="map-controls">
+      <button type="button" id="map-zoom-in" aria-label="Zoom in">+</button>
+      <button type="button" id="map-zoom-out" aria-label="Zoom out">−</button>
+      <button type="button" id="map-zoom-reset" aria-label="Reset view">⌂</button>
+    </div>
+    <div class="map-tooltip" id="map-tooltip" hidden>
+      <div class="tip-title"></div>
+      <div class="tip-sub"></div>
+    </div>
+  </div>
+
+  <div class="submap-below">
+    {
+      legend.length > 0 && (
+        <div>
+          <h2 class="submap-key-title">Key</h2>
+          <ol class="submap-key">
+            {legend.map((item) => (
+              <li>
+                <span class="key-label">{item.label}</span>
+                {item.note && <span class="key-note"> — {item.note}</span>}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )
+    }
+    <div class="prose">
+      <Content />
+    </div>
+  </div>
+</Base>
+
+<script>
+  import { initMapViewer } from '../../scripts/map-viewer';
+
+  const svg = document.getElementById('map-svg') as unknown as SVGSVGElement;
+  const [w, h] = svg.getAttribute('viewBox')!.split(' ').slice(2).map(Number);
+  initMapViewer({
+    svg,
+    frame: document.getElementById('map-frame')!,
+    tooltip: document.getElementById('map-tooltip')!,
+    width: w,
+    height: h,
+    zoomInBtn: document.getElementById('map-zoom-in'),
+    zoomOutBtn: document.getElementById('map-zoom-out'),
+    resetBtn: document.getElementById('map-zoom-reset'),
+  });
+</script>

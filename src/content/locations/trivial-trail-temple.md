@@ -1,10 +1,10 @@
 ---
 name: 'Ruined Temple'
-x: 560
-y: 560
+x: 398
+y: 710
 kind: dungeon
 status: rumored
-labelPlacement: right
+labelPlacement: left
 summary: 'Thornton’s tip: a ruined temple south along the Trivial Trail, where locals stash their gold.'
 lore: 'trivial-trail-temple'
 ---

@@ -1,55 +1,69 @@
 ---
 // Static terrain artwork for the campaign map — stylized line-art of the
-// Phandalin region in the site's design language. Everything is colored via
-// CSS variables (see the Map section of global.css) so the art restyles
-// itself between the dark and light themes.
+// Phandalin region in the site's design language, drawn to match the
+// geography of the official Sword Coast regional map (offical-assets/Maps/
+// map-00.02-sword-coast.jpg, reference only — never shipped to the site).
+// Everything is colored via CSS variables (see the Map section of
+// global.css) so the art restyles itself between the dark and light themes.
 //
 // Coordinate space: 1000 × 750 viewBox units, shared with the location
-// coordinates in src/content/locations/.
+// coordinates in src/content/locations/. The mapping from the official map
+// is uniform, so bearings and relative distances are true: the coast runs
+// down the west, Neverwinter Wood spans the north, and the Sword Mountains
+// run northeast–southwest to the east of Phandalin.
 
-// Mountain peaks as [x, y, scale] — the north range of the Sword Mountains,
-// the eastern chain framing Icespire Peak, and the foothills by the dig.
+// Mountain peaks as [x, y, scale].
 const peaks: [number, number, number][] = [
-  // North range, west to east
-  [300, 105, 1.0], [345, 88, 1.3], [395, 110, 0.9], [450, 84, 1.2],
-  [505, 102, 1.0], [560, 78, 1.4], [615, 100, 1.0], [665, 82, 1.2],
-  [720, 104, 0.9], [775, 86, 1.3], [830, 108, 1.1], [880, 90, 1.3],
-  [930, 115, 1.0], [972, 95, 1.2],
-  // Eastern chain, curving down toward Icespire Peak
-  [905, 170, 1.1], [865, 228, 0.9], [910, 290, 1.2], [870, 350, 1.0],
-  [915, 412, 1.1], [858, 468, 0.9], [893, 528, 1.0], [852, 588, 0.9],
-  [900, 648, 0.8], [738, 512, 0.9], [845, 428, 0.8],
-  // Southwestern foothills around the excavation
-  [205, 468, 0.8], [178, 505, 0.7], [222, 545, 0.6],
+  // The Sword Mountains: main ridge, NE (Icespire country) to SW (Axeholm)
+  [836, 368, 1.1], [872, 396, 0.9], [806, 402, 1.0], [772, 430, 0.9],
+  [742, 452, 1.0], [676, 486, 1.0], [646, 512, 1.2], [614, 540, 0.9],
+  [586, 566, 1.0], [556, 594, 0.9], [524, 622, 1.0], [494, 610, 0.8],
+  [886, 340, 1.0], [908, 388, 0.9], [864, 452, 0.8], [896, 480, 0.9],
+  // Southern knot around Axeholm and Gnomengarde
+  [540, 665, 0.9], [600, 668, 1.0], [640, 640, 0.9], [666, 608, 1.0],
+  [632, 584, 0.8], [462, 670, 0.7], [696, 640, 0.8], [730, 600, 0.9],
+  [762, 560, 1.0], [794, 520, 0.9], [826, 492, 1.0],
 ];
 
 // Pine clusters as [x, y, scale].
 const pines: [number, number, number][] = [
-  // Northern wood, in the river's headwater country
-  [590, 165, 1.1], [625, 190, 0.9], [660, 158, 1.2], [700, 185, 1.0],
-  [740, 162, 0.9], [775, 195, 1.1], [640, 225, 1.0], [692, 232, 0.8],
-  [745, 218, 1.0], [612, 250, 0.8],
-  // West wood, between Phandalin and the coast
-  [245, 262, 1.0], [280, 288, 1.2], [318, 262, 0.9], [352, 292, 1.0],
-  [262, 322, 0.9], [305, 330, 1.1], [345, 345, 0.8], [230, 348, 0.9],
-  // Southern wood, along the Trivial Trail
-  [532, 612, 1.0], [568, 640, 1.2], [610, 615, 0.9], [648, 648, 1.1],
-  [590, 678, 1.0], [640, 690, 0.8], [532, 668, 0.9], [680, 620, 1.0],
-  [706, 668, 0.9],
-  // Copse by the Gnomengarde gorge
-  [252, 600, 0.8], [282, 626, 0.9], [265, 660, 0.8], [298, 672, 0.7],
-  // Scattered woods east of the Trivial Trail, below the Triboar Trail
-  [635, 345, 1.0], [672, 372, 0.9], [712, 340, 1.1], [748, 385, 0.9],
-  [680, 415, 0.8], [625, 395, 0.9], [772, 345, 0.8],
-  // Far-east pines toward the mountains
-  [808, 618, 0.9], [768, 655, 1.0], [822, 680, 0.8],
-  // Sparse cover near the wayside camp
-  [286, 425, 0.8], [352, 448, 0.7], [300, 498, 0.8],
+  // Neverwinter Wood: the southern reaches, spanning the top of the map
+  [345, 18, 1.1], [385, 40, 0.9], [425, 14, 1.2], [462, 42, 1.0],
+  [502, 20, 0.9], [540, 44, 1.1], [580, 18, 1.0], [618, 40, 1.2],
+  [655, 16, 0.9], [692, 38, 1.0], [718, 14, 0.8], [352, 74, 0.9],
+  [430, 80, 1.0], [508, 84, 1.1], [586, 78, 0.9], [660, 76, 1.0],
+  [700, 108, 0.9], [390, 112, 1.1], [468, 118, 0.9], [545, 116, 1.0],
+  [618, 112, 0.8],
+  // The wood's southern lobe, west of Conyberry country
+  [420, 156, 1.0], [478, 162, 1.1], [532, 158, 0.9], [446, 200, 0.9],
+  [502, 206, 1.0], [548, 196, 0.8], [472, 246, 0.9], [520, 250, 1.0],
+  [498, 288, 0.8], [545, 282, 0.7],
+  // Kryptgarden Forest, creeping in at the southeast corner
+  [790, 636, 1.0], [836, 618, 1.1], [880, 646, 0.9], [922, 622, 1.2],
+  [958, 660, 1.0], [828, 672, 0.9], [874, 696, 1.1], [918, 714, 0.9],
+  [962, 700, 0.8], [786, 700, 0.8], [940, 594, 0.9], [968, 630, 0.7],
 ];
 
-// Low hills (drawn as small arcs) around Umbrage Hill.
+// Low hill arcs as [x, y, scale].
 const hills: [number, number, number][] = [
-  [512, 398, 1.0], [545, 372, 0.9], [472, 412, 0.8], [530, 428, 0.7],
+  // Rolling country north and east of Phandalin, toward the gold mine
+  [428, 442, 1.0], [468, 428, 0.9], [508, 448, 0.8], [545, 424, 1.0],
+  [582, 398, 0.9], [620, 372, 0.8], [548, 470, 0.7], [610, 430, 0.9],
+  [652, 402, 0.8], [660, 350, 0.9],
+  // Conyberry and Shrine of Savras country, northeast
+  [700, 170, 0.9], [736, 232, 0.8], [792, 192, 1.0], [826, 244, 0.9],
+  [858, 176, 0.8], [886, 260, 0.9], [706, 262, 0.7], [852, 122, 0.8],
+  // Around Umbrage Hill
+  [510, 578, 0.7], [472, 566, 0.6],
+  // Open country northeast, toward the Starmetal Hills
+  [668, 302, 0.8], [726, 330, 0.9], [786, 300, 0.8], [842, 322, 0.9],
+  [920, 240, 0.8], [946, 300, 0.9], [910, 140, 0.8], [950, 80, 0.7],
+];
+
+// Marsh tufts of the Mere of Dead Men as [x, y, scale].
+const marshes: [number, number, number][] = [
+  [246, 712, 1.0], [286, 728, 0.9], [322, 706, 0.8], [206, 696, 0.8],
+  [350, 732, 0.9], [262, 742, 0.7], [312, 744, 0.8],
 ];
 ---
 
@@ -63,54 +77,63 @@ const hills: [number, number, number][] = [
       <path class="m-pine" d="M0 -14 L5 -6 L2 -6 L7 1 L-7 1 L-2 -6 L-5 -6 Z"></path>
       <line class="m-pine-trunk" x1="0" y1="1" x2="0" y2="4"></line>
     </g>
+    <g id="m-marsh">
+      <path class="m-marsh" d="M-7 0 L-4 -7 M0 0 L0 -8 M7 0 L4 -7 M-10 2 L10 2"></path>
+    </g>
   </defs>
 
   <!-- Land -->
   <rect class="m-land" x="0" y="0" width="1000" height="750"></rect>
 
-  <!-- Faint contour hints -->
+  <!-- Faint contour hints in the open country -->
   <g class="m-contour">
-    <path d="M 320 190 C 420 160 540 170 640 140"></path>
-    <path d="M 560 330 C 640 360 700 350 780 390"></path>
-    <path d="M 330 560 C 400 590 460 610 500 650"></path>
-    <path d="M 700 300 C 760 280 800 300 840 280"></path>
-    <path d="M 420 700 C 480 715 520 705 580 720"></path>
+    <path d="M 210 470 C 265 490 320 482 365 502"></path>
+    <path d="M 255 305 C 305 322 355 312 395 330"></path>
+    <path d="M 645 300 C 705 318 760 310 815 328"></path>
+    <path d="M 330 645 C 380 660 430 652 480 668"></path>
+    <path d="M 230 150 C 275 165 315 158 350 172"></path>
   </g>
 
   <!-- The sea, west of the coastline -->
   <path
     class="m-sea"
-    d="M 148 0
-       C 138 70 168 130 152 200
-       C 138 262 176 320 162 382
-       C 150 436 190 480 178 535
-       C 170 570 205 600 198 632
-       C 192 668 228 706 240 750
+    d="M 46 0
+       C 64 90 90 150 102 210
+       C 118 280 132 300 142 352
+       C 158 420 166 412 172 472
+       C 184 530 196 536 206 592
+       C 218 640 226 646 232 688
+       C 238 716 244 730 248 750
        L 0 750 L 0 0 Z"></path>
   <path
     class="m-shore"
-    d="M 148 0
-       C 138 70 168 130 152 200
-       C 138 262 176 320 162 382
-       C 150 436 190 480 178 535
-       C 170 570 205 600 198 632
-       C 192 668 228 706 240 750"></path>
+    d="M 46 0
+       C 64 90 90 150 102 210
+       C 118 280 132 300 142 352
+       C 158 420 166 412 172 472
+       C 184 530 196 536 206 592
+       C 218 640 226 646 232 688
+       C 238 716 244 730 248 750"></path>
   <g class="m-wave">
-    <path d="M 78 210 q 12 -6 24 0 q 12 6 24 0"></path>
-    <path d="M 52 388 q 12 -6 24 0 q 12 6 24 0"></path>
-    <path d="M 92 552 q 12 -6 24 0 q 12 6 24 0"></path>
-    <path d="M 120 690 q 12 -6 24 0 q 12 6 24 0"></path>
+    <path d="M 22 150 q 12 -6 24 0 q 12 6 24 0"></path>
+    <path d="M 58 402 q 12 -6 24 0 q 12 6 24 0"></path>
+    <path d="M 34 560 q 12 -6 24 0 q 12 6 24 0"></path>
   </g>
 
-  <!-- River: from the mountains down the gorge to the sea at Gnomengarde -->
+  <!-- River: out of Neverwinter Wood, west to the sea -->
   <path
     class="m-river"
-    d="M 562 122
-       C 520 170 470 195 448 235
-       C 424 278 372 300 340 350
-       C 308 400 288 425 272 470
-       C 256 515 228 540 216 578
-       C 206 610 200 625 196 642"></path>
+    d="M 470 30
+       C 450 44 425 52 400 58
+       C 340 66 290 76 240 82
+       C 180 88 120 84 62 70"></path>
+
+  <!-- Mere of Dead Men, south along the coast -->
+  <g>
+    {marshes.map(([x, y, s]) => (
+      <use href="#m-marsh" transform={`translate(${x} ${y}) scale(${s})`} />
+    ))}
+  </g>
 
   <!-- Mountains -->
   <g>
@@ -120,7 +143,7 @@ const hills: [number, number, number][] = [
   </g>
 
   <!-- Icespire Peak itself -->
-  <g transform="translate(795 486)">
+  <g transform="translate(704 470)">
     <path class="m-peak m-peak-major" d="M-52 0 L-22 -62 L-11 -45 L9 -84 L28 -42 L52 0 Z"></path>
     <path class="m-snow" d="M9 -84 L17 -66 L8 -58 L0 -68 Z"></path>
     <path class="m-ridge" d="M9 -84 L4 -52 M-22 -62 L-18 -40"></path>
@@ -133,7 +156,7 @@ const hills: [number, number, number][] = [
     ))}
   </g>
 
-  <!-- Hills around Umbrage Hill -->
+  <!-- Hills -->
   <g class="m-hill">
     {hills.map(([x, y, s]) => (
       <path
@@ -143,32 +166,48 @@ const hills: [number, number, number][] = [
     ))}
   </g>
 
-  <!-- Trails -->
+  <!-- Roads (solid) -->
+  <g class="m-road">
+    <!-- The High Road, hugging the coast through Leilon -->
+    <path d="M 78 0 C 100 100 130 240 152 340 C 176 448 216 560 268 640 C 282 662 298 700 310 750"></path>
+  </g>
+
+  <!-- Trails (dashed) -->
   <g class="m-trail">
-    <!-- Triboar Trail, east out of Phandalin -->
-    <path d="M 438 296 C 560 264 720 268 985 238"></path>
-    <!-- South road: Phandalin → wayside camp → Gnomengarde -->
-    <path d="M 428 308 C 392 358 350 412 316 454 C 276 510 226 566 197 622"></path>
-    <!-- Spur to Umbrage Hill, continuing to the excavation, with the split
-         trail down to the orc encampment -->
-    <path d="M 438 306 C 455 330 470 352 482 368"></path>
-    <path d="M 482 378 C 420 430 332 470 268 508"></path>
-    <path d="M 390 455 C 398 474 402 488 404 500"></path>
-    <!-- Trivial Trail, south — fading past the ruined temple -->
-    <path d="M 436 312 C 478 392 530 472 556 550"></path>
-    <path class="m-trail-faint" d="M 562 572 C 578 622 586 662 592 706"></path>
+    <!-- Triboar Trail: off the High Road, east across the hills, then
+         northeast to Conyberry and on toward Butterskull Ranch -->
+    <path d="M 262 302 C 330 334 400 368 452 388 C 520 360 566 322 616 264 C 660 216 706 176 756 136"></path>
+    <path d="M 756 136 C 780 142 798 148 816 152 C 840 156 862 158 884 160"></path>
+    <!-- Spur south into Phandalin -->
+    <path d="M 452 388 C 456 430 458 472 460 520"></path>
+    <!-- Spur northeast to Mountain's Toe Gold Mine -->
+    <path d="M 452 388 C 500 404 552 428 596 452"></path>
+    <!-- Phandalin south to Umbrage Hill, continuing to the excavation, with
+         the split trail down to the orc encampment -->
+    <path d="M 462 536 C 472 556 482 576 490 588"></path>
+    <path d="M 484 600 C 464 622 448 632 432 640"></path>
+    <path d="M 458 618 C 454 636 452 648 450 656"></path>
+    <!-- The road the party cut southeast to Gnomengarde, via the camp -->
+    <path d="M 468 534 C 490 544 510 552 528 564 C 548 582 564 598 574 608"></path>
+    <!-- Trivial Trail, south out of Phandalin — fading past the ruined temple -->
+    <path d="M 454 536 C 438 590 420 646 408 690"></path>
+    <path class="m-trail-faint" d="M 404 704 C 400 722 398 736 396 750"></path>
   </g>
 
   <!-- Terrain labels -->
   <g class="m-terrain-label">
-    <text transform="translate(70 430) rotate(-90)">The Sword Coast</text>
-    <text transform="translate(545 52) rotate(-2)">Sword Mountains</text>
-    <text transform="translate(660 296) rotate(-4)">Triboar Trail</text>
-    <text transform="translate(497 470) rotate(60)">Trivial Trail</text>
+    <text transform="translate(30 400) rotate(-90)">The Sword Coast</text>
+    <text class="m-label-forest" transform="translate(400 190) rotate(-6)">Neverwinter Wood</text>
+    <text transform="translate(596 568) rotate(-38)">Sword Mountains</text>
+    <text transform="translate(534 330) rotate(-30)">Triboar Trail</text>
+    <text class="m-label-sm" transform="translate(421 655) rotate(78)">Trivial Trail</text>
+    <text transform="translate(146 372) rotate(76)">The High Road</text>
+    <text class="m-label-sm" transform="translate(222 690)">Mere of Dead Men</text>
+    <text class="m-label-forest" transform="translate(800 700) rotate(-20)">Kryptgarden Forest</text>
   </g>
 
   <!-- Compass, out over the open sea -->
-  <g class="m-compass" transform="translate(76 106)">
+  <g class="m-compass" transform="translate(66 646)">
     <circle r="22"></circle>
     <line x1="0" y1="16" x2="0" y2="-12"></line>
     <path class="m-compass-arrow" d="M0 -20 L6 -6 L0 -10 L-6 -6 Z"></path>

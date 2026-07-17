@@ -631,6 +631,10 @@ body {
   --map-river: #31465c;
   --map-trail: #55677a;
   --map-label: #8b9caa;
+  --map-building: #2b3844;
+  --map-pool: #172433;
+  --map-dig: #26323e;
+  --map-path: #232e39;
 }
 
 [data-theme='light'] {
@@ -646,6 +650,10 @@ body {
   --map-river: #a9c6d6;
   --map-trail: #93a1ae;
   --map-label: #647079;
+  --map-building: #dde3e7;
+  --map-pool: #cfe2ec;
+  --map-dig: #eceff1;
+  --map-path: #e0e6e9;
 }
 
 .map-layout {
@@ -752,6 +760,19 @@ body {
   opacity: 0.7;
 }
 
+.m-road path {
+  fill: none;
+  stroke: var(--map-trail);
+  stroke-width: 2;
+}
+
+.m-marsh {
+  fill: none;
+  stroke: var(--map-forest);
+  stroke-width: 1;
+  opacity: 0.7;
+}
+
 .m-trail path {
   fill: none;
   stroke: var(--map-trail);
@@ -771,6 +792,15 @@ body {
   text-transform: uppercase;
   fill: var(--map-label);
   opacity: 0.75;
+}
+
+.m-terrain-label .m-label-forest {
+  fill: var(--map-forest);
+}
+
+.m-terrain-label .m-label-sm {
+  font-size: 12px;
+  letter-spacing: 0.14em;
 }
 
 .m-compass circle {
@@ -963,6 +993,142 @@ body {
   font-size: var(--text-xs);
   color: var(--text-muted);
   white-space: nowrap;
+}
+
+/* ---------- Local sub-maps ---------- */
+
+/* Ground/base surfaces */
+.sm-ground { fill: var(--map-land); }
+.sm-water { fill: var(--map-pool); stroke: var(--map-shore); stroke-width: 1.5; }
+.sm-open { fill: var(--map-dig); stroke: var(--map-ridge); stroke-width: 1.5; }
+.sm-contour { fill: none; stroke: var(--map-ridge); stroke-width: 1; opacity: 0.4; }
+.sm-grass { fill: none; stroke: var(--map-forest); stroke-width: 1; opacity: 0.55; }
+.sm-rock { fill: var(--map-peak-fill); stroke: var(--map-ridge); stroke-width: 1.5; stroke-linejoin: round; }
+
+/* Interiors: room floors inside carved/roofed structures */
+.sm-floor {
+  fill: var(--bg-inset);
+  stroke: var(--map-shore);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.sm-inner { fill: none; stroke: var(--map-shore); stroke-width: 1.5; }
+
+/* Buildings seen from above (village maps) */
+.sm-building {
+  fill: var(--map-building);
+  stroke: var(--map-ridge);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+
+.sm-roofline { fill: none; stroke: var(--map-ridge); stroke-width: 0.9; opacity: 0.8; }
+
+/* Details */
+.sm-street { fill: none; stroke: var(--map-path); stroke-width: 7; stroke-linecap: round; }
+.sm-plaza { fill: var(--map-path); }
+.sm-tree { fill: var(--map-forest-fill); stroke: var(--map-forest); stroke-width: 1.1; }
+.sm-field { fill: none; stroke: var(--map-ridge); stroke-width: 0.8; opacity: 0.55; }
+.sm-path { fill: none; stroke: var(--map-trail); stroke-width: 1.6; stroke-dasharray: 5 5; }
+.sm-fence { fill: none; stroke: var(--map-ridge); stroke-width: 1.4; stroke-dasharray: 2 4; }
+.sm-cliff { fill: none; stroke: var(--map-ridge); stroke-width: 1; opacity: 0.85; }
+.sm-detail { fill: none; stroke: var(--map-label); stroke-width: 1.2; }
+.sm-detail-fill { fill: var(--map-shore); }
+.sm-door { fill: var(--accent-gold-muted); stroke: none; }
+.sm-stairs { fill: none; stroke: var(--map-shore); stroke-width: 1.1; }
+.sm-crack { fill: none; stroke: var(--map-ridge); stroke-width: 1; stroke-dasharray: 3 3; }
+.sm-hall-wall { fill: none; stroke: var(--map-shore); stroke-width: 16; stroke-linecap: round; }
+.sm-hall { fill: none; stroke: var(--bg-inset); stroke-width: 11; stroke-linecap: round; }
+.sm-bridge { stroke: var(--accent-gold-muted); stroke-width: 1.4; fill: none; }
+.sm-crenel { fill: none; stroke: var(--map-ridge); stroke-width: 5; stroke-dasharray: 7 4; }
+.sm-snowpath { fill: none; stroke: var(--map-snow); stroke-width: 8; stroke-linecap: round; opacity: 0.28; }
+
+/* Labels inside sub-maps */
+.sm-label {
+  font-family: var(--font-display);
+  font-size: 15px;
+  fill: var(--text-primary);
+  paint-order: stroke;
+  stroke: var(--map-land);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.sm-note {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 13px;
+  fill: var(--map-label);
+}
+
+/* Numbered points of interest, matching the key below the map */
+.sm-poi circle {
+  fill: var(--bg-surface);
+  stroke: var(--accent-gold);
+  stroke-width: 1.6;
+}
+
+.sm-poi.danger circle {
+  stroke: var(--accent-ember);
+}
+
+.sm-poi text {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  fill: var(--text-primary);
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+/* Scale bar */
+.sm-scale line { stroke: var(--map-label); stroke-width: 1.5; }
+.sm-scale text {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 12px;
+  fill: var(--map-label);
+  text-anchor: middle;
+}
+
+/* Page furniture below the map */
+.submap-below {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .submap-below {
+    grid-template-columns: 1fr;
+  }
+}
+
+.submap-key-title {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-3);
+}
+
+.submap-key {
+  margin: 0;
+  padding-left: var(--space-5);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.submap-key .key-label {
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
 }
 
 /* Detail panel */
