@@ -38,11 +38,12 @@ replace it with the real campaign as you go.
 - **Locations** (`src/content/locations/`): places on the campaign map. `name`,
   `x`/`y` (map coordinates in the SVG's 1000×750 space), `kind`
   (town/settlement/landmark/dungeon/camp/lair), `status`
-  (`visited`/`known`/`rumored` — drives the marker style), optional `danger`
-  (ember marker, reserved for real threats), `firstVisited` (session number),
-  `summary` (tooltip/panel one-liner), `labelPlacement` (top/bottom/left/right),
-  and optional `lore`/`faction` slugs to link from the detail panel. The body
-  is the panel write-up.
+  (`visited`/`known`/`rumored`/`unknown` — drives the marker style; `unknown`
+  renders nowhere until you change it), optional `danger` (ember marker,
+  reserved for real threats), `firstVisited` (session number), `summary`
+  (tooltip/panel one-liner), `labelPlacement` (top/bottom/left/right), and
+  optional `lore`/`faction` slugs to link from the detail panel. The body is
+  the panel write-up.
 - **Journey** (`src/content/journey/session-N.yaml`): one YAML file per
   session. `route` is the ordered list of location slugs the party travelled
   through (consecutive stops become route segments on the map — include
@@ -52,15 +53,31 @@ replace it with the real campaign as you go.
   (`battle`/`discovery`/`social`/`omen` — battles pin in ember). Unknown slugs
   fail the build.
 
-### The map
+### The maps
 
 `/map/` renders a custom SVG of the Phandalin region
 (`src/components/map/MapTerrain.astro` — terrain only; markers, route, and
 event pins are generated from the content collections by
-`src/pages/map/index.astro`). The map pans and zooms (drag/scroll/pinch),
-markers open a detail panel with links to recaps and codex entries, and
+`src/pages/map/index.astro`). The geography follows the official Sword Coast
+map in `offical-assets/Maps/` (reference only — the scans are never shipped
+to the built site). The map pans and zooms (drag/scroll/pinch), markers open
+a detail panel with links to recaps and codex entries, and
 `/map/#location-slug` deep-links to a location. Terrain colors live in the
 Campaign Map section of `src/styles/global.css` and follow both themes.
+
+**Local sub-maps** live in `src/components/map/submaps/` (one SVG component
+per site, registered in `registry.ts` with a numbered key). A sub-map page
+(`/map/<slug>/`) is only built — and only linked from the region map's
+detail panel — while its location's status is `visited`. Every official site
+is already drawn, including the ones the party hasn't found: to reveal one
+after a session, flip its location's `status` (`unknown` → `visited` shows
+both the region marker and the local map). The full status ladder:
+
+- `unknown` — not on the site at all (all the undiscovered official sites
+  start here)
+- `rumored` — dashed marker, the party has only heard of it
+- `known` — hollow marker, seen but not entered
+- `visited` — solid marker, local map published
 
 Frontmatter is validated at build time (`src/content.config.ts`); a bad field
 fails the build with a pointed error.

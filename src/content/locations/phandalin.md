@@ -1,7 +1,7 @@
 ---
 name: 'Phandalin'
-x: 430
-y: 300
+x: 460
+y: 528
 kind: town
 status: visited
 firstVisited: 1

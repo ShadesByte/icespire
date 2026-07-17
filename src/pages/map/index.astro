@@ -2,11 +2,13 @@
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import MapTerrain from '../../components/map/MapTerrain.astro';
+import { submaps } from '../../components/map/submaps/registry';
 import { url } from '../../utils/url';
 
-const locations = (await getCollection('locations')).sort((a, b) =>
-  a.data.name.localeCompare(b.data.name)
-);
+// Undiscovered locations exist in the collection but render nowhere.
+const locations = (await getCollection('locations'))
+  .filter((loc) => loc.data.status !== 'unknown')
+  .sort((a, b) => a.data.name.localeCompare(b.data.name));
 const journey = (await getCollection('journey')).sort((a, b) => a.data.session - b.data.session);
 const sessions = await getCollection('sessions');
 const loreEntries = await getCollection('lore');
@@ -108,6 +110,8 @@ const entries = await Promise.all(
       throw new Error(`Map: location "${loc.id}" links unknown faction "${loc.data.faction}"`);
     }
     const events = eventsByLoc.get(loc.id) ?? [];
+    // Local maps only surface once the party has actually been there.
+    const hasLocalMap = loc.data.status === 'visited' && loc.id in submaps;
     const slots = pinSlots[loc.data.labelPlacement];
     const pins = events.map((ev, i) => {
       const angle = (slots[i % slots.length] * Math.PI) / 180;
@@ -123,7 +127,7 @@ const entries = await Promise.all(
       };
     });
     const { Content } = await render(loc);
-    return { loc, Content, events, pins, faction };
+    return { loc, Content, events, pins, faction, hasLocalMap };
   })
 );
 ---
@@ -241,7 +245,7 @@ const entries = await Promise.all(
       <div id="map-panel-detail" hidden></div>
 
       {
-        entries.map(({ loc, Content, events, faction }) => (
+        entries.map(({ loc, Content, events, faction, hasLocalMap }) => (
           <template data-loc={loc.id}>
             <button class="map-panel-close" type="button" aria-label="Back to legend">
               ×
@@ -265,8 +269,9 @@ const entries = await Promise.all(
             <div class="prose map-panel-prose">
               <Content />
             </div>
-            {(loc.data.lore || faction) && (
+            {(hasLocalMap || loc.data.lore || faction) && (
               <p class="map-panel-links">
+                {hasLocalMap && <a href={url(`/map/${loc.id}/`)}>Local map →</a>}
                 {loc.data.lore && (
                   <a href={url(`/lore/${loc.data.lore}/`)}>Codex entry →</a>
                 )}
@@ -305,6 +310,8 @@ const entries = await Promise.all(
 </Base>
 
 <script>
+  import { initMapViewer } from '../../scripts/map-viewer';
+
   const svg = document.getElementById('map-svg') as unknown as SVGSVGElement;
   const frame = document.getElementById('map-frame')!;
   const tooltip = document.getElementById('map-tooltip')!;
@@ -312,127 +319,16 @@ const entries = await Promise.all(
   const panelDetail = document.getElementById('map-panel-detail')!;
   const panel = document.getElementById('map-panel')!;
 
-  // ---- Pan & zoom via viewBox ---------------------------------------------
-  const BASE = { x: 0, y: 0, w: 1000, h: 750 };
-  const MIN_W = BASE.w / 5;
-  let vb = { ...BASE };
-
-  function applyViewBox() {
-    const maxX = BASE.x + BASE.w - vb.w + 60;
-    const maxY = BASE.y + BASE.h - vb.h + 60;
-    vb.x = Math.min(Math.max(vb.x, BASE.x - 60), Math.max(maxX, BASE.x - 60));
-    vb.y = Math.min(Math.max(vb.y, BASE.y - 60), Math.max(maxY, BASE.y - 60));
-    svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
-    hideTip();
-  }
-
-  function clientToMap(clientX: number, clientY: number) {
-    const rect = svg.getBoundingClientRect();
-    return {
-      x: vb.x + ((clientX - rect.left) / rect.width) * vb.w,
-      y: vb.y + ((clientY - rect.top) / rect.height) * vb.h,
-    };
-  }
-
-  function zoomAt(clientX: number, clientY: number, factor: number) {
-    const focus = clientToMap(clientX, clientY);
-    const w = Math.min(Math.max(vb.w / factor, MIN_W), BASE.w);
-    const h = w * (BASE.h / BASE.w);
-    vb = {
-      x: focus.x - ((focus.x - vb.x) / vb.w) * w,
-      y: focus.y - ((focus.y - vb.y) / vb.h) * h,
-      w,
-      h,
-    };
-    applyViewBox();
-  }
-
-  svg.addEventListener(
-    'wheel',
-    (e) => {
-      e.preventDefault();
-      zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY * 0.0016));
-    },
-    { passive: false }
-  );
-
-  const pointers = new Map<number, { x: number; y: number }>();
-  let dragDistance = 0;
-
-  svg.addEventListener('pointerdown', (e) => {
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pointers.size === 1) dragDistance = 0;
+  const viewer = initMapViewer({
+    svg,
+    frame,
+    tooltip,
+    width: 1000,
+    height: 750,
+    zoomInBtn: document.getElementById('map-zoom-in'),
+    zoomOutBtn: document.getElementById('map-zoom-out'),
+    resetBtn: document.getElementById('map-zoom-reset'),
   });
-
-  svg.addEventListener('pointermove', (e) => {
-    const prev = pointers.get(e.pointerId);
-    if (!prev) return;
-    const rect = svg.getBoundingClientRect();
-    const scale = vb.w / rect.width;
-
-    if (pointers.size === 1) {
-      dragDistance += Math.hypot(e.clientX - prev.x, e.clientY - prev.y);
-      // Capture only once a real drag starts — capturing on pointerdown would
-      // retarget the click event to the svg and break marker clicks.
-      if (dragDistance > 5 && !svg.hasPointerCapture(e.pointerId)) {
-        svg.setPointerCapture(e.pointerId);
-      }
-      vb.x -= (e.clientX - prev.x) * scale;
-      vb.y -= (e.clientY - prev.y) * scale;
-      applyViewBox();
-    } else if (pointers.size === 2) {
-      if (!svg.hasPointerCapture(e.pointerId)) svg.setPointerCapture(e.pointerId);
-      const other = [...pointers.entries()].find(([id]) => id !== e.pointerId)![1];
-      const prevDist = Math.hypot(prev.x - other.x, prev.y - other.y);
-      const newDist = Math.hypot(e.clientX - other.x, e.clientY - other.y);
-      const midX = (e.clientX + other.x) / 2;
-      const midY = (e.clientY + other.y) / 2;
-      dragDistance += 10;
-      if (prevDist > 0) zoomAt(midX, midY, newDist / prevDist);
-      vb.x -= (midX - (prev.x + other.x) / 2) * scale;
-      vb.y -= (midY - (prev.y + other.y) / 2) * scale;
-      applyViewBox();
-    }
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  });
-
-  const releasePointer = (e: PointerEvent) => pointers.delete(e.pointerId);
-  svg.addEventListener('pointerup', releasePointer);
-  svg.addEventListener('pointercancel', releasePointer);
-
-  document.getElementById('map-zoom-in')!.addEventListener('click', () => {
-    const rect = svg.getBoundingClientRect();
-    zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, 1.4);
-  });
-  document.getElementById('map-zoom-out')!.addEventListener('click', () => {
-    const rect = svg.getBoundingClientRect();
-    zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, 1 / 1.4);
-  });
-  document.getElementById('map-zoom-reset')!.addEventListener('click', () => {
-    vb = { ...BASE };
-    applyViewBox();
-  });
-
-  // ---- Tooltip --------------------------------------------------------------
-  function hideTip() {
-    tooltip.hidden = true;
-  }
-
-  for (const el of svg.querySelectorAll<SVGGraphicsElement>('[data-tip-title]')) {
-    el.addEventListener('pointerenter', (e) => {
-      if (e.pointerType !== 'mouse') return;
-      tooltip.querySelector('.tip-title')!.textContent = el.dataset.tipTitle ?? '';
-      tooltip.querySelector('.tip-sub')!.textContent = el.dataset.tipSub ?? '';
-      const elRect = el.getBoundingClientRect();
-      const frameRect = frame.getBoundingClientRect();
-      tooltip.hidden = false;
-      const x = elRect.left + elRect.width / 2 - frameRect.left;
-      const y = elRect.top - frameRect.top;
-      tooltip.style.left = `${x}px`;
-      tooltip.style.top = `${y}px`;
-    });
-    el.addEventListener('pointerleave', hideTip);
-  }
 
   // ---- Detail panel -----------------------------------------------------------
   function closePanel() {
@@ -467,7 +363,7 @@ const entries = await Promise.all(
 
   for (const el of svg.querySelectorAll<SVGGraphicsElement>('[data-open]')) {
     el.addEventListener('click', () => {
-      if (dragDistance > 5) return; // it was a pan, not a click
+      if (viewer.wasDrag()) return; // it was a pan, not a click
       openLocation(el.dataset.open!, true);
     });
     el.addEventListener('keydown', (e) => {

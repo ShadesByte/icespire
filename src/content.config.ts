@@ -76,8 +76,9 @@ const locations = defineCollection({
       .enum(['town', 'settlement', 'landmark', 'dungeon', 'camp', 'lair'])
       .default('landmark'),
     // visited = the party has been there; known = seen/confirmed from afar;
-    // rumored = only heard about. Drives the marker style.
-    status: z.enum(['visited', 'known', 'rumored']).default('rumored'),
+    // rumored = only heard about; unknown = not yet discovered — the location
+    // (and any sub-map) exists in the repo but renders nowhere on the site.
+    status: z.enum(['visited', 'known', 'rumored', 'unknown']).default('unknown'),
     // Renders the marker in ember (reserved for genuine danger).
     danger: z.boolean().default(false),
     firstVisited: z.number().int().optional(), // session number

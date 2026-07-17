@@ -1,11 +1,11 @@
 ---
 name: 'Wayside Camp'
-x: 315
-y: 458
+x: 528
+y: 564
 kind: camp
 status: visited
 firstVisited: 1
-labelPlacement: left
+labelPlacement: top
 summary: 'A night’s camp on the road south. One boar, well preserved — and later, one Dax.'
 ---
 
