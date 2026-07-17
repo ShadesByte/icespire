@@ -1,0 +1,17 @@
+session: 5
+route:
+  - umbrage-hill
+  - dwarven-excavation
+events:
+  - title: 'Orc encampment spotted'
+    at: orc-encampment
+    kind: omen
+    note: 'Day-old tracks, then Sage and Hamish confirm a large camp down a split trail. Bypassed — for now.'
+  - title: 'The jellies of Abbathor'
+    at: dwarven-excavation
+    kind: battle
+    note: 'Slashing splits them (Dax proves it the hard way). Thom’s Wild Magic Surge ages him years; Bean lands a natural 20. One more jelly waits in the rubble.'
+  - title: 'The coffer and the necklace'
+    at: dwarven-excavation
+    kind: discovery
+    note: 'A hidden coffer of gemstones the dwarves don’t know about, and a gold necklace overwritten in ancient Dwarvish: “This is what happens to those who displease me.”'

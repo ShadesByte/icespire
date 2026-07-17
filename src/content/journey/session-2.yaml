@@ -1,0 +1,13 @@
+session: 2
+route:
+  - wayside-camp
+  - gnomengarde
+events:
+  - title: 'Dax joins the party'
+    at: wayside-camp
+    kind: social
+    note: 'Found wounded amid five dead orcs, on a parallel contract to Gnomengarde. Joined cautiously.'
+  - title: 'Facktoré’s ballista'
+    at: gnomengarde
+    kind: battle
+    note: 'An unhinged gnome shoots Thom with a crossbow ballista. Slept, tied up, robbed of 10 gold by Bean — then freed by Rut.'

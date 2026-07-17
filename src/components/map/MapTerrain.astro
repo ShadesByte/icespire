@@ -1,0 +1,177 @@
+---
+// Static terrain artwork for the campaign map — stylized line-art of the
+// Phandalin region in the site's design language. Everything is colored via
+// CSS variables (see the Map section of global.css) so the art restyles
+// itself between the dark and light themes.
+//
+// Coordinate space: 1000 × 750 viewBox units, shared with the location
+// coordinates in src/content/locations/.
+
+// Mountain peaks as [x, y, scale] — the north range of the Sword Mountains,
+// the eastern chain framing Icespire Peak, and the foothills by the dig.
+const peaks: [number, number, number][] = [
+  // North range, west to east
+  [300, 105, 1.0], [345, 88, 1.3], [395, 110, 0.9], [450, 84, 1.2],
+  [505, 102, 1.0], [560, 78, 1.4], [615, 100, 1.0], [665, 82, 1.2],
+  [720, 104, 0.9], [775, 86, 1.3], [830, 108, 1.1], [880, 90, 1.3],
+  [930, 115, 1.0], [972, 95, 1.2],
+  // Eastern chain, curving down toward Icespire Peak
+  [905, 170, 1.1], [865, 228, 0.9], [910, 290, 1.2], [870, 350, 1.0],
+  [915, 412, 1.1], [858, 468, 0.9], [893, 528, 1.0], [852, 588, 0.9],
+  [900, 648, 0.8], [738, 512, 0.9], [845, 428, 0.8],
+  // Southwestern foothills around the excavation
+  [205, 468, 0.8], [178, 505, 0.7], [222, 545, 0.6],
+];
+
+// Pine clusters as [x, y, scale].
+const pines: [number, number, number][] = [
+  // Northern wood, in the river's headwater country
+  [590, 165, 1.1], [625, 190, 0.9], [660, 158, 1.2], [700, 185, 1.0],
+  [740, 162, 0.9], [775, 195, 1.1], [640, 225, 1.0], [692, 232, 0.8],
+  [745, 218, 1.0], [612, 250, 0.8],
+  // West wood, between Phandalin and the coast
+  [245, 262, 1.0], [280, 288, 1.2], [318, 262, 0.9], [352, 292, 1.0],
+  [262, 322, 0.9], [305, 330, 1.1], [345, 345, 0.8], [230, 348, 0.9],
+  // Southern wood, along the Trivial Trail
+  [532, 612, 1.0], [568, 640, 1.2], [610, 615, 0.9], [648, 648, 1.1],
+  [590, 678, 1.0], [640, 690, 0.8], [532, 668, 0.9], [680, 620, 1.0],
+  [706, 668, 0.9],
+  // Copse by the Gnomengarde gorge
+  [252, 600, 0.8], [282, 626, 0.9], [265, 660, 0.8], [298, 672, 0.7],
+  // Scattered woods east of the Trivial Trail, below the Triboar Trail
+  [635, 345, 1.0], [672, 372, 0.9], [712, 340, 1.1], [748, 385, 0.9],
+  [680, 415, 0.8], [625, 395, 0.9], [772, 345, 0.8],
+  // Far-east pines toward the mountains
+  [808, 618, 0.9], [768, 655, 1.0], [822, 680, 0.8],
+  // Sparse cover near the wayside camp
+  [286, 425, 0.8], [352, 448, 0.7], [300, 498, 0.8],
+];
+
+// Low hills (drawn as small arcs) around Umbrage Hill.
+const hills: [number, number, number][] = [
+  [512, 398, 1.0], [545, 372, 0.9], [472, 412, 0.8], [530, 428, 0.7],
+];
+---
+
+<g class="map-terrain" aria-hidden="true">
+  <defs>
+    <g id="m-peak">
+      <path class="m-peak" d="M-16 0 L-6 -20 L-1 -13 L7 -26 L20 0 Z"></path>
+      <path class="m-ridge" d="M7 -26 L3 -14"></path>
+    </g>
+    <g id="m-pine">
+      <path class="m-pine" d="M0 -14 L5 -6 L2 -6 L7 1 L-7 1 L-2 -6 L-5 -6 Z"></path>
+      <line class="m-pine-trunk" x1="0" y1="1" x2="0" y2="4"></line>
+    </g>
+  </defs>
+
+  <!-- Land -->
+  <rect class="m-land" x="0" y="0" width="1000" height="750"></rect>
+
+  <!-- Faint contour hints -->
+  <g class="m-contour">
+    <path d="M 320 190 C 420 160 540 170 640 140"></path>
+    <path d="M 560 330 C 640 360 700 350 780 390"></path>
+    <path d="M 330 560 C 400 590 460 610 500 650"></path>
+    <path d="M 700 300 C 760 280 800 300 840 280"></path>
+    <path d="M 420 700 C 480 715 520 705 580 720"></path>
+  </g>
+
+  <!-- The sea, west of the coastline -->
+  <path
+    class="m-sea"
+    d="M 148 0
+       C 138 70 168 130 152 200
+       C 138 262 176 320 162 382
+       C 150 436 190 480 178 535
+       C 170 570 205 600 198 632
+       C 192 668 228 706 240 750
+       L 0 750 L 0 0 Z"></path>
+  <path
+    class="m-shore"
+    d="M 148 0
+       C 138 70 168 130 152 200
+       C 138 262 176 320 162 382
+       C 150 436 190 480 178 535
+       C 170 570 205 600 198 632
+       C 192 668 228 706 240 750"></path>
+  <g class="m-wave">
+    <path d="M 78 210 q 12 -6 24 0 q 12 6 24 0"></path>
+    <path d="M 52 388 q 12 -6 24 0 q 12 6 24 0"></path>
+    <path d="M 92 552 q 12 -6 24 0 q 12 6 24 0"></path>
+    <path d="M 120 690 q 12 -6 24 0 q 12 6 24 0"></path>
+  </g>
+
+  <!-- River: from the mountains down the gorge to the sea at Gnomengarde -->
+  <path
+    class="m-river"
+    d="M 562 122
+       C 520 170 470 195 448 235
+       C 424 278 372 300 340 350
+       C 308 400 288 425 272 470
+       C 256 515 228 540 216 578
+       C 206 610 200 625 196 642"></path>
+
+  <!-- Mountains -->
+  <g>
+    {peaks.map(([x, y, s]) => (
+      <use href="#m-peak" transform={`translate(${x} ${y}) scale(${s})`} />
+    ))}
+  </g>
+
+  <!-- Icespire Peak itself -->
+  <g transform="translate(795 486)">
+    <path class="m-peak m-peak-major" d="M-52 0 L-22 -62 L-11 -45 L9 -84 L28 -42 L52 0 Z"></path>
+    <path class="m-snow" d="M9 -84 L17 -66 L8 -58 L0 -68 Z"></path>
+    <path class="m-ridge" d="M9 -84 L4 -52 M-22 -62 L-18 -40"></path>
+  </g>
+
+  <!-- Forests -->
+  <g>
+    {pines.map(([x, y, s]) => (
+      <use href="#m-pine" transform={`translate(${x} ${y}) scale(${s})`} />
+    ))}
+  </g>
+
+  <!-- Hills around Umbrage Hill -->
+  <g class="m-hill">
+    {hills.map(([x, y, s]) => (
+      <path
+        d="M-12 0 Q0 -11 12 0"
+        transform={`translate(${x} ${y}) scale(${s})`}
+      />
+    ))}
+  </g>
+
+  <!-- Trails -->
+  <g class="m-trail">
+    <!-- Triboar Trail, east out of Phandalin -->
+    <path d="M 438 296 C 560 264 720 268 985 238"></path>
+    <!-- South road: Phandalin → wayside camp → Gnomengarde -->
+    <path d="M 428 308 C 392 358 350 412 316 454 C 276 510 226 566 197 622"></path>
+    <!-- Spur to Umbrage Hill, continuing to the excavation, with the split
+         trail down to the orc encampment -->
+    <path d="M 438 306 C 455 330 470 352 482 368"></path>
+    <path d="M 482 378 C 420 430 332 470 268 508"></path>
+    <path d="M 390 455 C 398 474 402 488 404 500"></path>
+    <!-- Trivial Trail, south — fading past the ruined temple -->
+    <path d="M 436 312 C 478 392 530 472 556 550"></path>
+    <path class="m-trail-faint" d="M 562 572 C 578 622 586 662 592 706"></path>
+  </g>
+
+  <!-- Terrain labels -->
+  <g class="m-terrain-label">
+    <text transform="translate(70 430) rotate(-90)">The Sword Coast</text>
+    <text transform="translate(545 52) rotate(-2)">Sword Mountains</text>
+    <text transform="translate(660 296) rotate(-4)">Triboar Trail</text>
+    <text transform="translate(497 470) rotate(60)">Trivial Trail</text>
+  </g>
+
+  <!-- Compass, out over the open sea -->
+  <g class="m-compass" transform="translate(76 106)">
+    <circle r="22"></circle>
+    <line x1="0" y1="16" x2="0" y2="-12"></line>
+    <path class="m-compass-arrow" d="M0 -20 L6 -6 L0 -10 L-6 -6 Z"></path>
+    <text y="-30">N</text>
+  </g>
+</g>

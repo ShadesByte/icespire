@@ -1,0 +1,13 @@
+session: 1
+route:
+  - phandalin
+  - wayside-camp
+events:
+  - title: 'The Gnomengarde contract'
+    at: phandalin
+    kind: social
+    note: 'The party works the quest board, meets the Quest Master, and takes the job: warn the gnomes about a dragon. A strange figure watches from the inn.'
+  - title: 'The boar hunt'
+    at: wayside-camp
+    kind: battle
+    note: 'Barnaby’s Dragon’s Breath and Sage’s reluctant finishing arrow. Dinner, preserved.'

@@ -1,0 +1,15 @@
+session: 4
+route:
+  - gnomengarde
+  - wayside-camp
+  - phandalin
+  - umbrage-hill
+events:
+  - title: 'Crossbows at the Miner’s Exchange'
+    at: phandalin
+    kind: omen
+    note: 'Guildmaster Thornton reveals a Zhentarim pin and forces a paid intel-sharing pact at crossbow-point. Bean lifts Harbin’s private notes on her.'
+  - title: 'Manticores at the windmill'
+    at: umbrage-hill
+    kind: battle
+    note: 'Two manticores. Dax burns an Action Surge, Barnaby shields him, Bean and Sage land the kills. The windmill mostly survives.'
