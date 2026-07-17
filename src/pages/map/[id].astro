@@ -19,6 +19,11 @@ const submap = submaps[location.id];
 const { Component, width, height, scaleNote, legend } = submap;
 const { Content } = await render(location);
 
+// Sibling local maps, for quick hops without going back to the region.
+const otherLocalMaps = (await getCollection('locations'))
+  .filter((loc) => loc.data.status === 'visited' && loc.id in submaps && loc.id !== location.id)
+  .sort((a, b) => a.data.name.localeCompare(b.data.name));
+
 const kindLabels: Record<string, string> = {
   town: 'Town',
   settlement: 'Settlement',
@@ -60,6 +65,12 @@ const kindLabels: Record<string, string> = {
       <div class="tip-sub"></div>
     </div>
   </div>
+
+  <nav class="map-quicklinks" aria-label="Other maps">
+    <span class="ql-label">More maps</span>
+    <a href={url(`/map/#${location.id}`)}>The region</a>
+    {otherLocalMaps.map((loc) => <a href={url(`/map/${loc.id}/`)}>{loc.data.name}</a>)}
+  </nav>
 
   <div class="submap-below">
     {

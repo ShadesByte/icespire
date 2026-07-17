@@ -24,30 +24,80 @@ function requireLoc(slug: string, context: string) {
 }
 
 // ---- Party route: unique segments between consecutive stops, gently bowed
-// so overlapping back-and-forth legs read as one hand-drawn trail.
-function curvedEdge(a: { x: number; y: number }, b: { x: number; y: number }, i: number) {
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const len = Math.hypot(dx, dy) || 1;
-  const bow = Math.min(0.14 * len, 20) * (i % 2 === 0 ? 1 : -1);
-  const cx = (a.x + b.x) / 2 - (dy / len) * bow;
-  const cy = (a.y + b.y) / 2 + (dx / len) * bow;
-  return `M ${a.x} ${a.y} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${b.x} ${b.y}`;
+// so overlapping back-and-forth legs read as one hand-drawn trail. Each edge
+// remembers its most recent traversal (session + direction) so the map can
+// dim older legs, brighten the latest one, and point chevrons the way the
+// party last travelled.
+interface RouteEdge {
+  d: string;
+  ax: number;
+  ay: number;
+  bx: number;
+  by: number;
+  cx: number;
+  cy: number;
+  fromId: string;
+  lastSession: number;
+  reversed: boolean;
 }
 
-const edgeKeys = new Set<string>();
-const routePaths: string[] = [];
+const edgeMap = new Map<string, RouteEdge>();
+let bowIndex = 0;
 for (const leg of journey) {
   const stops = leg.data.route.map((slug) =>
     requireLoc(slug, `journey session ${leg.data.session} route`)
   );
   for (let i = 0; i < stops.length - 1; i++) {
-    const key = [stops[i].id, stops[i + 1].id].sort().join('|');
-    if (edgeKeys.has(key)) continue;
-    edgeKeys.add(key);
-    routePaths.push(curvedEdge(stops[i].data, stops[i + 1].data, routePaths.length));
+    const a = stops[i];
+    const b = stops[i + 1];
+    const key = [a.id, b.id].sort().join('|');
+    const existing = edgeMap.get(key);
+    if (existing) {
+      existing.lastSession = leg.data.session;
+      existing.reversed = existing.fromId !== a.id;
+      continue;
+    }
+    const dx = b.data.x - a.data.x;
+    const dy = b.data.y - a.data.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const bow = Math.min(0.14 * len, 20) * (bowIndex++ % 2 === 0 ? 1 : -1);
+    const cx = (a.data.x + b.data.x) / 2 - (dy / len) * bow;
+    const cy = (a.data.y + b.data.y) / 2 + (dx / len) * bow;
+    edgeMap.set(key, {
+      d: `M ${a.data.x} ${a.data.y} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${b.data.x} ${b.data.y}`,
+      ax: a.data.x,
+      ay: a.data.y,
+      bx: b.data.x,
+      by: b.data.y,
+      cx,
+      cy,
+      fromId: a.id,
+      lastSession: leg.data.session,
+      reversed: false,
+    });
   }
 }
+
+const latestRouteSession = Math.max(0, ...[...edgeMap.values()].map((e) => e.lastSession));
+const routeEdges = [...edgeMap.values()].map((e) => {
+  // Midpoint and tangent of the quadratic curve at t = 0.5; for a quadratic
+  // the tangent there is simply endpoint − start.
+  const midX = 0.25 * e.ax + 0.5 * e.cx + 0.25 * e.bx;
+  const midY = 0.25 * e.ay + 0.5 * e.cy + 0.25 * e.by;
+  let angle = (Math.atan2(e.by - e.ay, e.bx - e.ax) * 180) / Math.PI;
+  if (e.reversed) angle += 180;
+  return { ...e, midX, midY, angle, latest: e.lastSession === latestRouteSession };
+});
+
+// Where the party currently stands: the last stop of the latest session
+// that recorded any travel.
+const latestLeg = [...journey].reverse().find((leg) => leg.data.route.length > 0);
+const currentLocation = latestLeg
+  ? requireLoc(
+      latestLeg.data.route[latestLeg.data.route.length - 1],
+      `journey session ${latestLeg.data.session} route`
+    )
+  : undefined;
 
 // ---- Events, grouped per location and pinned in a fan around the marker,
 // on whichever side the label doesn't occupy.
@@ -137,6 +187,7 @@ const entries = await Promise.all(
   <h1 class="page-title">Campaign Map</h1>
 
   <div class="map-layout">
+    <div class="map-main">
     <div class="map-frame" id="map-frame">
       <svg
         class="map-svg"
@@ -148,8 +199,30 @@ const entries = await Promise.all(
         <MapTerrain />
 
         <g class="map-route" aria-hidden="true">
-          {routePaths.map((d) => <path d={d} />)}
+          {routeEdges.map((e) => (
+            <path class:list={[{ latest: e.latest }]} d={e.d} />
+          ))}
+          {routeEdges.map((e) => (
+            <path
+              class:list={['map-route-chevron', { latest: e.latest }]}
+              d="M -5 -4.5 L 4 0 L -5 4.5"
+              transform={`translate(${e.midX.toFixed(1)} ${e.midY.toFixed(1)}) rotate(${e.angle.toFixed(1)})`}
+            />
+          ))}
         </g>
+
+        {
+          currentLocation && (
+            <g
+              class="map-here"
+              transform={`translate(${currentLocation.data.x} ${currentLocation.data.y})`}
+              aria-hidden="true"
+            >
+              <circle class="here-pulse" r="13" />
+              <circle class="here-ring" r="11" />
+            </g>
+          )
+        }
 
         {
           entries.map(({ loc, pins }) => (
@@ -183,34 +256,39 @@ const entries = await Promise.all(
         }
 
         {
-          entries.map(({ loc }) => (
-            <g
-              class:list={[
-                'map-marker',
-                `s-${loc.data.status}`,
-                { danger: loc.data.danger },
-              ]}
-              transform={`translate(${loc.data.x} ${loc.data.y})`}
-              data-open={loc.id}
-              data-slug={loc.id}
-              data-tip-title={loc.data.name}
-              data-tip-sub={`${kindLabels[loc.data.kind]} · ${statusLabels[loc.data.status]}`}
-              tabindex="0"
-              role="button"
-              aria-label={`${loc.data.name} — ${kindLabels[loc.data.kind]}, ${statusLabels[loc.data.status]}`}
-            >
-              <circle class="ring" r="13" />
-              <circle class="dot" r="7" />
-              <text
-                class="map-label"
-                x={labelOffsets[loc.data.labelPlacement].x}
-                y={labelOffsets[loc.data.labelPlacement].y}
-                text-anchor={labelOffsets[loc.data.labelPlacement].anchor}
+          entries.map(({ loc }) => {
+            // Towns anchor the map; camps and other footnotes stay small so
+            // the busy stretches read cleanly.
+            const r = loc.data.kind === 'town' ? 8.5 : loc.data.kind === 'camp' ? 5.5 : 7;
+            return (
+              <g
+                class:list={[
+                  'map-marker',
+                  `s-${loc.data.status}`,
+                  { danger: loc.data.danger, minor: loc.data.kind === 'camp' },
+                ]}
+                transform={`translate(${loc.data.x} ${loc.data.y})`}
+                data-open={loc.id}
+                data-slug={loc.id}
+                data-tip-title={loc.data.name}
+                data-tip-sub={`${kindLabels[loc.data.kind]} · ${statusLabels[loc.data.status]}`}
+                tabindex="0"
+                role="button"
+                aria-label={`${loc.data.name} — ${kindLabels[loc.data.kind]}, ${statusLabels[loc.data.status]}`}
               >
-                {loc.data.name}
-              </text>
-            </g>
-          ))
+                <circle class="ring" r={r + 5.5} />
+                <circle class="dot" r={r} />
+                <text
+                  class="map-label"
+                  x={labelOffsets[loc.data.labelPlacement].x}
+                  y={labelOffsets[loc.data.labelPlacement].y}
+                  text-anchor={labelOffsets[loc.data.labelPlacement].anchor}
+                >
+                  {loc.data.name}
+                </text>
+              </g>
+            );
+          })
         }
       </svg>
 
@@ -225,6 +303,20 @@ const entries = await Promise.all(
       </div>
     </div>
 
+    {
+      entries.some((e) => e.hasLocalMap) && (
+        <nav class="map-quicklinks" aria-label="Local maps">
+          <span class="ql-label">Local maps</span>
+          {entries
+            .filter((e) => e.hasLocalMap)
+            .map(({ loc }) => (
+              <a href={url(`/map/${loc.id}/`)}>{loc.data.name}</a>
+            ))}
+        </nav>
+      )
+    }
+    </div>
+
     <aside class="map-panel" id="map-panel" aria-live="polite">
       <div id="map-panel-home">
         <div class="kicker">Legend</div>
@@ -235,11 +327,13 @@ const entries = await Promise.all(
           <li><span class="legend-dot danger"></span> Ember means danger</li>
           <li><span class="legend-pin"></span> Event — the number is the session</li>
           <li><span class="legend-pin battle"></span> Battle</li>
-          <li><span class="legend-route"></span> The party's route</li>
+          <li><span class="legend-route"></span> The party's route — chevrons point the way; the newest leg glows brightest</li>
+          <li><span class="legend-here"></span> Where the party now stands</li>
         </ul>
         <p class="map-panel-hint">
           Select a marker to read about a place — what happened there, and which
-          recaps tell the story. Scroll or pinch to zoom, drag to pan.
+          recaps tell the story. Scroll or pinch to zoom, drag to pan. Session
+          events stay tucked away until you zoom in.
         </p>
       </div>
       <div id="map-panel-detail" hidden></div>
@@ -271,7 +365,11 @@ const entries = await Promise.all(
             </div>
             {(hasLocalMap || loc.data.lore || faction) && (
               <p class="map-panel-links">
-                {hasLocalMap && <a href={url(`/map/${loc.id}/`)}>Local map →</a>}
+                {hasLocalMap && (
+                  <a class="map-btn" href={url(`/map/${loc.id}/`)}>
+                    Local map →
+                  </a>
+                )}
                 {loc.data.lore && (
                   <a href={url(`/lore/${loc.data.lore}/`)}>Codex entry →</a>
                 )}
@@ -328,6 +426,11 @@ const entries = await Promise.all(
     zoomInBtn: document.getElementById('map-zoom-in'),
     zoomOutBtn: document.getElementById('map-zoom-out'),
     resetBtn: document.getElementById('map-zoom-reset'),
+    // Session pins only fade in once the reader is actually looking closely —
+    // at the resting zoom they'd bury the markers.
+    onZoom: (scale) => {
+      svg.dataset.zoom = scale >= 1.6 ? 'in' : 'out';
+    },
   });
 
   // ---- Detail panel -----------------------------------------------------------

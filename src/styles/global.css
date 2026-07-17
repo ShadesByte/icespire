@@ -824,14 +824,71 @@ body {
   text-anchor: middle;
 }
 
-/* The party's route */
+/* The party's route: older legs fade back, the newest leg glows, and
+ * chevrons point the direction last travelled. */
 .map-route path {
   fill: none;
   stroke: var(--accent-gold);
   stroke-width: 2.4;
   stroke-dasharray: 7 5;
   stroke-linecap: round;
-  opacity: 0.85;
+  opacity: 0.45;
+}
+
+.map-route path.latest {
+  stroke-width: 3;
+  opacity: 0.95;
+}
+
+.map-route .map-route-chevron {
+  stroke-dasharray: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  opacity: 0.7;
+}
+
+.map-route .map-route-chevron.latest {
+  stroke-width: 2.6;
+  opacity: 1;
+}
+
+/* Where the party currently stands */
+.map-here .here-ring {
+  fill: none;
+  stroke: var(--accent-gold);
+  stroke-width: 2;
+}
+
+.map-here .here-pulse {
+  fill: none;
+  stroke: var(--accent-gold-strong);
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: map-here-pulse 2.6s var(--ease-standard) infinite;
+}
+
+@keyframes map-here-pulse {
+  0% { transform: scale(0.8); opacity: 0.9; }
+  70% { transform: scale(1.7); opacity: 0; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-here .here-pulse {
+    animation: none;
+    opacity: 0.4;
+  }
+}
+
+/* Session pins hide at the resting zoom and fade in as the reader leans in. */
+.map-pin-group {
+  transition: opacity var(--duration-normal) var(--ease-standard);
+}
+
+.map-svg[data-zoom='out'] .map-pin-group {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Location markers */
@@ -901,6 +958,11 @@ body {
 .map-marker.s-rumored .map-label {
   fill: var(--text-secondary);
   font-style: italic;
+}
+
+.map-marker.minor .map-label {
+  font-size: 12.5px;
+  fill: var(--text-secondary);
 }
 
 /* Event pins */
@@ -1131,6 +1193,61 @@ body {
   font-weight: var(--weight-semibold);
 }
 
+/* Quick links to local maps (under the region map and on sub-map pages) */
+.map-main {
+  min-width: 0;
+}
+
+.map-quicklinks {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.map-quicklinks .ql-label {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.map-quicklinks a {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  text-decoration: none;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  padding: 3px 14px;
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+.map-quicklinks a:hover {
+  color: var(--link-hover);
+  border-color: var(--accent-gold);
+}
+
+/* Gold call-to-action link (detail panel, lore pages) */
+.map-btn {
+  display: inline-block;
+  background: var(--accent-gold-wash);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  padding: 3px 12px;
+  text-decoration: none;
+}
+
+.map-btn:hover {
+  background: var(--accent-gold-muted);
+  color: var(--text-on-gold);
+}
+
 /* Detail panel */
 .map-panel {
   background: var(--bg-surface-raised);
@@ -1194,6 +1311,15 @@ body {
 .legend-route {
   width: 22px;
   border-top: 2px dashed var(--accent-gold);
+  flex-shrink: 0;
+}
+
+.legend-here {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--accent-gold);
+  border-radius: 50%;
+  box-shadow: var(--shadow-gold-glow);
   flex-shrink: 0;
 }
 

@@ -1,6 +1,8 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import { submaps } from '../../components/map/submaps/registry';
+import { url } from '../../utils/url';
 
 export async function getStaticPaths() {
   const entries = await getCollection('lore');
@@ -9,11 +11,30 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
+
+// If a map location references this lore entry, link back to the maps.
+const location = (await getCollection('locations')).find(
+  (loc) => loc.data.lore === entry.id && loc.data.status !== 'unknown'
+);
+const hasLocalMap =
+  location != null && location.data.status === 'visited' && location.id in submaps;
 ---
 
 <Base title={entry.data.title}>
   <div class="kicker">{entry.data.category}</div>
   <h1 class="page-title" style="margin-bottom: var(--space-5);">{entry.data.title}</h1>
+  {
+    location && (
+      <p class="map-panel-links" style="margin: 0 0 var(--space-5);">
+        <a href={url(`/map/#${location.id}`)}>On the campaign map →</a>
+        {hasLocalMap && (
+          <a class="map-btn" href={url(`/map/${location.id}/`)}>
+            Local map →
+          </a>
+        )}
+      </p>
+    )
+  }
   <div class="prose">
     <Content />
   </div>
