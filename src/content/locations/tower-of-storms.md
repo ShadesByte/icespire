@@ -1,7 +1,7 @@
 ---
 name: 'Tower of Storms'
-x: 144
-y: 568
+x: 152
+y: 556
 kind: landmark
 status: unknown
 labelPlacement: right

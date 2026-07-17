@@ -1,7 +1,7 @@
 ---
 name: 'Icespire Peak'
-x: 704
-y: 498
+x: 706
+y: 492
 kind: lair
 status: rumored
 danger: true

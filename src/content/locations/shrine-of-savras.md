@@ -1,7 +1,7 @@
 ---
 name: 'Shrine of Savras'
-x: 764
-y: 208
+x: 762
+y: 205
 kind: landmark
 status: unknown
 labelPlacement: bottom

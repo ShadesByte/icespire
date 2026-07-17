@@ -1,6 +1,6 @@
 ---
 name: 'Mountain’s Toe Gold Mine'
-x: 600
+x: 599
 y: 456
 kind: landmark
 status: unknown

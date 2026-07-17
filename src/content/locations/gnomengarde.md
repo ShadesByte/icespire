@@ -1,7 +1,7 @@
 ---
 name: 'Gnomengarde'
-x: 580
-y: 616
+x: 585
+y: 614
 kind: settlement
 status: visited
 firstVisited: 2

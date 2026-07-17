@@ -1,7 +1,7 @@
 ---
 name: 'Woodland Manse'
 x: 656
-y: 100
+y: 101
 kind: dungeon
 status: unknown
 labelPlacement: right

@@ -1,7 +1,7 @@
 ---
 name: 'Falcon’s Hunting Lodge'
-x: 564
-y: 64
+x: 568
+y: 60
 kind: landmark
 status: unknown
 labelPlacement: bottom

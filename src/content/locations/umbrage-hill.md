@@ -1,7 +1,7 @@
 ---
 name: 'Umbrage Hill'
-x: 492
-y: 596
+x: 493
+y: 580
 kind: landmark
 status: visited
 firstVisited: 4
