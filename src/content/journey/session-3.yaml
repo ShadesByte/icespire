@@ -1,0 +1,11 @@
+session: 3
+route: []
+events:
+  - title: 'Two mimics in the storeroom'
+    at: gnomengarde
+    kind: battle
+    note: 'King Korboz’s paranoia proves not entirely unfounded.'
+  - title: 'The contract delivered'
+    at: gnomengarde
+    kind: social
+    note: 'The Guildmaster’s contract reaches King Korboz; Dax receives a sealed envelope as proof of the completed trade.'

@@ -613,6 +613,524 @@ body {
   color: var(--text-muted);
 }
 
+/* ---------- Campaign Map ---------- */
+
+/* Map-only palette, derived from the token families (slate/frost/snow plus a
+ * desaturated cold pine green). Gold stays the "pay attention" color: markers,
+ * route, event pins. Ember appears only on genuine dangers. */
+:root {
+  --map-sea: #0f151b;
+  --map-land: #151c23;
+  --map-contour: #202a33;
+  --map-shore: #46586a;
+  --map-ridge: #5e7182;
+  --map-peak-fill: #1a222a;
+  --map-snow: #ccd6dd;
+  --map-forest: #3f5c4d;
+  --map-forest-fill: rgba(63, 92, 77, 0.2);
+  --map-river: #31465c;
+  --map-trail: #55677a;
+  --map-label: #8b9caa;
+}
+
+[data-theme='light'] {
+  --map-sea: #d8e4ea;
+  --map-land: #f3f5f6;
+  --map-contour: #e3e9ec;
+  --map-shore: #8b9caa;
+  --map-ridge: #7d8ea0;
+  --map-peak-fill: #e9edef;
+  --map-snow: #ffffff;
+  --map-forest: #5d7d6b;
+  --map-forest-fill: rgba(93, 125, 107, 0.16);
+  --map-river: #a9c6d6;
+  --map-trail: #93a1ae;
+  --map-label: #647079;
+}
+
+.map-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .map-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.map-frame {
+  position: relative;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.map-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none;
+  cursor: grab;
+}
+
+.map-svg:active {
+  cursor: grabbing;
+}
+
+/* Terrain */
+.m-land { fill: var(--map-land); }
+.m-sea { fill: var(--map-sea); }
+
+.m-shore {
+  fill: none;
+  stroke: var(--map-shore);
+  stroke-width: 1.5;
+}
+
+.m-wave path {
+  fill: none;
+  stroke: var(--map-shore);
+  stroke-width: 1;
+  opacity: 0.5;
+}
+
+.m-contour path {
+  fill: none;
+  stroke: var(--map-contour);
+  stroke-width: 1;
+}
+
+.m-river {
+  fill: none;
+  stroke: var(--map-river);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.m-peak {
+  fill: var(--map-peak-fill);
+  stroke: var(--map-ridge);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.m-peak-major {
+  stroke-width: 2;
+}
+
+.m-ridge {
+  fill: none;
+  stroke: var(--map-ridge);
+  stroke-width: 1;
+}
+
+.m-snow {
+  fill: var(--map-snow);
+}
+
+.m-pine {
+  fill: var(--map-forest-fill);
+  stroke: var(--map-forest);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+
+.m-pine-trunk {
+  stroke: var(--map-forest);
+  stroke-width: 1.2;
+}
+
+.m-hill path {
+  fill: none;
+  stroke: var(--map-ridge);
+  stroke-width: 1.2;
+  opacity: 0.7;
+}
+
+.m-trail path {
+  fill: none;
+  stroke: var(--map-trail);
+  stroke-width: 1.6;
+  stroke-dasharray: 5 5;
+}
+
+.m-trail .m-trail-faint {
+  opacity: 0.45;
+}
+
+.m-terrain-label text {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 15px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  fill: var(--map-label);
+  opacity: 0.75;
+}
+
+.m-compass circle {
+  fill: none;
+  stroke: var(--map-shore);
+}
+
+.m-compass line {
+  stroke: var(--map-label);
+  stroke-width: 1.5;
+}
+
+.m-compass-arrow {
+  fill: var(--map-label);
+}
+
+.m-compass text {
+  font-family: var(--font-display);
+  font-size: 14px;
+  fill: var(--map-label);
+  text-anchor: middle;
+}
+
+/* The party's route */
+.map-route path {
+  fill: none;
+  stroke: var(--accent-gold);
+  stroke-width: 2.4;
+  stroke-dasharray: 7 5;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+/* Location markers */
+.map-marker {
+  cursor: pointer;
+  outline: none;
+}
+
+.map-marker .dot {
+  fill: var(--accent-gold);
+  stroke: var(--bg-page);
+  stroke-width: 1.8;
+  transition: stroke-width var(--duration-fast) var(--ease-standard);
+}
+
+.map-marker.s-known .dot {
+  fill: var(--bg-surface);
+  stroke: var(--accent-gold);
+  stroke-width: 2;
+}
+
+.map-marker.s-rumored .dot {
+  fill: var(--bg-surface);
+  fill-opacity: 0.55;
+  stroke: var(--frost-400);
+  stroke-width: 1.8;
+  stroke-dasharray: 3 3;
+}
+
+.map-marker.danger .dot {
+  stroke: var(--accent-ember);
+}
+
+.map-marker.s-visited.danger .dot {
+  fill: var(--accent-ember);
+  stroke: var(--bg-page);
+}
+
+.map-marker .ring {
+  fill: none;
+  stroke: var(--accent-gold);
+  stroke-width: 1.5;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+.map-marker.danger .ring {
+  stroke: var(--accent-ember);
+}
+
+.map-marker:hover .ring,
+.map-marker:focus-visible .ring,
+.map-marker.selected .ring {
+  opacity: 0.9;
+}
+
+.map-marker .map-label {
+  font-family: var(--font-display);
+  font-size: 14px;
+  fill: var(--text-primary);
+  paint-order: stroke;
+  stroke: var(--map-land);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.map-marker.s-rumored .map-label {
+  fill: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Event pins */
+.map-pin {
+  cursor: pointer;
+  outline: none;
+}
+
+.map-pin rect {
+  fill: var(--bg-surface);
+  stroke: var(--accent-gold);
+  stroke-width: 1.6;
+  transition: stroke-width var(--duration-fast) var(--ease-standard);
+}
+
+.map-pin.battle rect {
+  stroke: var(--accent-ember);
+}
+
+.map-pin:hover rect,
+.map-pin:focus-visible rect {
+  stroke-width: 2.6;
+}
+
+.map-pin text {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  fill: var(--text-secondary);
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+.map-pin-tick {
+  stroke: var(--border-strong);
+  stroke-width: 1;
+  opacity: 0.8;
+}
+
+/* Zoom controls */
+.map-controls {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.map-controls button {
+  width: 32px;
+  height: 32px;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.map-controls button:hover {
+  color: var(--text-primary);
+}
+
+/* Tooltip */
+.map-tooltip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 10px));
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-raised);
+  padding: 6px 10px;
+  pointer-events: none;
+  max-width: 260px;
+  z-index: 3;
+}
+
+.map-tooltip .tip-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.map-tooltip .tip-sub {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Detail panel */
+.map-panel {
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  position: sticky;
+  top: var(--space-5);
+  max-height: calc(100vh - var(--space-6));
+  overflow-y: auto;
+}
+
+@media (max-width: 900px) {
+  .map-panel {
+    position: static;
+    max-height: none;
+  }
+}
+
+.map-legend {
+  list-style: none;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.map-legend li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-dot.visited { background: var(--accent-gold); }
+.legend-dot.known { border: 2px solid var(--accent-gold); }
+.legend-dot.rumored { border: 1.5px dashed var(--text-muted); }
+.legend-dot.danger { border: 2px solid var(--accent-ember); }
+
+.legend-pin {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--accent-gold);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+  margin: 1px;
+}
+
+.legend-pin.battle { border-color: var(--accent-ember); }
+
+.legend-route {
+  width: 22px;
+  border-top: 2px dashed var(--accent-gold);
+  flex-shrink: 0;
+}
+
+.map-panel-hint {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: var(--leading-normal);
+  margin: 0;
+}
+
+.map-panel-close {
+  float: right;
+  width: 26px;
+  height: 26px;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.map-panel-close:hover {
+  color: var(--text-primary);
+}
+
+.map-panel-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  line-height: var(--leading-tight);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2);
+}
+
+.map-panel-meta {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0 0 var(--space-3);
+}
+
+.map-panel-prose {
+  font-size: var(--text-sm);
+}
+
+.map-panel-prose p {
+  margin: 0 0 var(--space-3);
+}
+
+.map-panel-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  margin: var(--space-3) 0 0;
+}
+
+.map-panel-events-title {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  color: var(--text-primary);
+  margin: var(--space-5) 0 var(--space-3);
+}
+
+.map-panel-events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  font-family: var(--font-body);
+}
+
+.map-panel-events li {
+  border-left: 2px solid var(--accent-gold);
+  padding-left: var(--space-3);
+}
+
+.map-panel-events li.battle {
+  border-left-color: var(--accent-ember);
+}
+
+.map-panel-events .ev-head {
+  font-size: var(--text-sm);
+}
+
+.map-panel-events .ev-title {
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
+  margin-left: 6px;
+}
+
+.map-panel-events .ev-note {
+  margin: 2px 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+}
+
 /* ---------- Prose (rendered Markdown) ---------- */
 
 .prose {

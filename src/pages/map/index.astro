@@ -1,0 +1,483 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import MapTerrain from '../../components/map/MapTerrain.astro';
+import { url } from '../../utils/url';
+
+const locations = (await getCollection('locations')).sort((a, b) =>
+  a.data.name.localeCompare(b.data.name)
+);
+const journey = (await getCollection('journey')).sort((a, b) => a.data.session - b.data.session);
+const sessions = await getCollection('sessions');
+const loreEntries = await getCollection('lore');
+const factionEntries = await getCollection('factions');
+
+const locBySlug = new Map(locations.map((loc) => [loc.id, loc]));
+const sessionIdByNumber = new Map(sessions.map((s) => [s.data.sessionNumber, s.id]));
+
+function requireLoc(slug: string, context: string) {
+  const loc = locBySlug.get(slug);
+  if (!loc) throw new Error(`Map: unknown location slug "${slug}" in ${context}`);
+  return loc;
+}
+
+// ---- Party route: unique segments between consecutive stops, gently bowed
+// so overlapping back-and-forth legs read as one hand-drawn trail.
+function curvedEdge(a: { x: number; y: number }, b: { x: number; y: number }, i: number) {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const len = Math.hypot(dx, dy) || 1;
+  const bow = Math.min(0.14 * len, 20) * (i % 2 === 0 ? 1 : -1);
+  const cx = (a.x + b.x) / 2 - (dy / len) * bow;
+  const cy = (a.y + b.y) / 2 + (dx / len) * bow;
+  return `M ${a.x} ${a.y} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${b.x} ${b.y}`;
+}
+
+const edgeKeys = new Set<string>();
+const routePaths: string[] = [];
+for (const leg of journey) {
+  const stops = leg.data.route.map((slug) =>
+    requireLoc(slug, `journey session ${leg.data.session} route`)
+  );
+  for (let i = 0; i < stops.length - 1; i++) {
+    const key = [stops[i].id, stops[i + 1].id].sort().join('|');
+    if (edgeKeys.has(key)) continue;
+    edgeKeys.add(key);
+    routePaths.push(curvedEdge(stops[i].data, stops[i + 1].data, routePaths.length));
+  }
+}
+
+// ---- Events, grouped per location and pinned in a fan around the marker,
+// on whichever side the label doesn't occupy.
+interface MapEvent {
+  session: number;
+  title: string;
+  note?: string;
+  kind: 'battle' | 'discovery' | 'social' | 'omen';
+}
+const eventsByLoc = new Map<string, MapEvent[]>();
+for (const leg of journey) {
+  for (const ev of leg.data.events) {
+    requireLoc(ev.at, `journey session ${leg.data.session} events`);
+    const list = eventsByLoc.get(ev.at) ?? [];
+    list.push({ session: leg.data.session, title: ev.title, note: ev.note, kind: ev.kind });
+    eventsByLoc.set(ev.at, list);
+  }
+}
+for (const list of eventsByLoc.values()) list.sort((a, b) => a.session - b.session);
+
+// Pin fan angles (degrees; 0 = east, 90 = south) keyed by label placement.
+const pinSlots: Record<string, number[]> = {
+  bottom: [-90, -25, -155, 35],
+  top: [90, 25, 155, -35],
+  right: [-135, -90, 180, 90],
+  left: [-45, -90, 0, 90],
+};
+
+const kindLabels: Record<string, string> = {
+  town: 'Town',
+  settlement: 'Settlement',
+  landmark: 'Landmark',
+  dungeon: 'Ruin',
+  camp: 'Camp',
+  lair: 'Lair',
+};
+const statusLabels: Record<string, string> = {
+  visited: 'Visited',
+  known: 'Sighted',
+  rumored: 'Rumored',
+};
+const labelOffsets: Record<string, { x: number; y: number; anchor: string }> = {
+  top: { x: 0, y: -17, anchor: 'middle' },
+  bottom: { x: 0, y: 25, anchor: 'middle' },
+  left: { x: -15, y: 5, anchor: 'end' },
+  right: { x: 15, y: 5, anchor: 'start' },
+};
+
+// ---- Assemble everything each marker/panel needs, including the rendered
+// Markdown body for the detail panel.
+const entries = await Promise.all(
+  locations.map(async (loc) => {
+    if (loc.data.lore && !loreEntries.some((e) => e.id === loc.data.lore)) {
+      throw new Error(`Map: location "${loc.id}" links unknown lore entry "${loc.data.lore}"`);
+    }
+    const faction = loc.data.faction
+      ? factionEntries.find((f) => f.id === loc.data.faction)
+      : undefined;
+    if (loc.data.faction && !faction) {
+      throw new Error(`Map: location "${loc.id}" links unknown faction "${loc.data.faction}"`);
+    }
+    const events = eventsByLoc.get(loc.id) ?? [];
+    const slots = pinSlots[loc.data.labelPlacement];
+    const pins = events.map((ev, i) => {
+      const angle = (slots[i % slots.length] * Math.PI) / 180;
+      const radius = 27 + Math.floor(i / slots.length) * 16;
+      return {
+        ...ev,
+        x: loc.data.x + Math.cos(angle) * radius,
+        y: loc.data.y + Math.sin(angle) * radius,
+        tickX1: loc.data.x + Math.cos(angle) * 10,
+        tickY1: loc.data.y + Math.sin(angle) * 10,
+        tickX2: loc.data.x + Math.cos(angle) * (radius - 9),
+        tickY2: loc.data.y + Math.sin(angle) * (radius - 9),
+      };
+    });
+    const { Content } = await render(loc);
+    return { loc, Content, events, pins, faction };
+  })
+);
+---
+
+<Base title="Campaign Map" description="The Phandalin region: where the party has gone and what happened there.">
+  <div class="kicker">The lands so far</div>
+  <h1 class="page-title">Campaign Map</h1>
+
+  <div class="map-layout">
+    <div class="map-frame" id="map-frame">
+      <svg
+        class="map-svg"
+        id="map-svg"
+        viewBox="0 0 1000 750"
+        role="group"
+        aria-label="Map of the Phandalin region with campaign locations"
+      >
+        <MapTerrain />
+
+        <g class="map-route" aria-hidden="true">
+          {routePaths.map((d) => <path d={d} />)}
+        </g>
+
+        {
+          entries.map(({ loc, pins }) => (
+            <g class="map-pin-group">
+              {pins.map((pin) => (
+                <>
+                  <line
+                    class="map-pin-tick"
+                    x1={pin.tickX1}
+                    y1={pin.tickY1}
+                    x2={pin.tickX2}
+                    y2={pin.tickY2}
+                  />
+                  <g
+                    class:list={['map-pin', { battle: pin.kind === 'battle' }]}
+                    transform={`translate(${pin.x.toFixed(1)} ${pin.y.toFixed(1)})`}
+                    data-open={loc.id}
+                    data-tip-title={pin.title}
+                    data-tip-sub={`Session ${pin.session}`}
+                    tabindex="0"
+                    role="button"
+                    aria-label={`${pin.title} — Session ${pin.session}`}
+                  >
+                    <rect x="-6.5" y="-6.5" width="13" height="13" transform="rotate(45)" />
+                    <text>{pin.session}</text>
+                  </g>
+                </>
+              ))}
+            </g>
+          ))
+        }
+
+        {
+          entries.map(({ loc }) => (
+            <g
+              class:list={[
+                'map-marker',
+                `s-${loc.data.status}`,
+                { danger: loc.data.danger },
+              ]}
+              transform={`translate(${loc.data.x} ${loc.data.y})`}
+              data-open={loc.id}
+              data-slug={loc.id}
+              data-tip-title={loc.data.name}
+              data-tip-sub={`${kindLabels[loc.data.kind]} · ${statusLabels[loc.data.status]}`}
+              tabindex="0"
+              role="button"
+              aria-label={`${loc.data.name} — ${kindLabels[loc.data.kind]}, ${statusLabels[loc.data.status]}`}
+            >
+              <circle class="ring" r="13" />
+              <circle class="dot" r="7" />
+              <text
+                class="map-label"
+                x={labelOffsets[loc.data.labelPlacement].x}
+                y={labelOffsets[loc.data.labelPlacement].y}
+                text-anchor={labelOffsets[loc.data.labelPlacement].anchor}
+              >
+                {loc.data.name}
+              </text>
+            </g>
+          ))
+        }
+      </svg>
+
+      <div class="map-controls">
+        <button type="button" id="map-zoom-in" aria-label="Zoom in">+</button>
+        <button type="button" id="map-zoom-out" aria-label="Zoom out">−</button>
+        <button type="button" id="map-zoom-reset" aria-label="Reset view">⌂</button>
+      </div>
+      <div class="map-tooltip" id="map-tooltip" hidden>
+        <div class="tip-title"></div>
+        <div class="tip-sub"></div>
+      </div>
+    </div>
+
+    <aside class="map-panel" id="map-panel" aria-live="polite">
+      <div id="map-panel-home">
+        <div class="kicker">Legend</div>
+        <ul class="map-legend">
+          <li><span class="legend-dot visited"></span> Visited by the party</li>
+          <li><span class="legend-dot known"></span> Sighted, not entered</li>
+          <li><span class="legend-dot rumored"></span> Only rumors, so far</li>
+          <li><span class="legend-dot danger"></span> Ember means danger</li>
+          <li><span class="legend-pin"></span> Event — the number is the session</li>
+          <li><span class="legend-pin battle"></span> Battle</li>
+          <li><span class="legend-route"></span> The party's route</li>
+        </ul>
+        <p class="map-panel-hint">
+          Select a marker to read about a place — what happened there, and which
+          recaps tell the story. Scroll or pinch to zoom, drag to pan.
+        </p>
+      </div>
+      <div id="map-panel-detail" hidden></div>
+
+      {
+        entries.map(({ loc, Content, events, faction }) => (
+          <template data-loc={loc.id}>
+            <button class="map-panel-close" type="button" aria-label="Back to legend">
+              ×
+            </button>
+            <div class="kicker">
+              {kindLabels[loc.data.kind]} · {statusLabels[loc.data.status]}
+            </div>
+            <h2 class="map-panel-title">{loc.data.name}</h2>
+            {loc.data.firstVisited != null && (
+              <p class="map-panel-meta">
+                First visited in{' '}
+                {sessionIdByNumber.has(loc.data.firstVisited) ? (
+                  <a href={url(`/sessions/${sessionIdByNumber.get(loc.data.firstVisited)}/`)}>
+                    Session {loc.data.firstVisited}
+                  </a>
+                ) : (
+                  `Session ${loc.data.firstVisited}`
+                )}
+              </p>
+            )}
+            <div class="prose map-panel-prose">
+              <Content />
+            </div>
+            {(loc.data.lore || faction) && (
+              <p class="map-panel-links">
+                {loc.data.lore && (
+                  <a href={url(`/lore/${loc.data.lore}/`)}>Codex entry →</a>
+                )}
+                {faction && (
+                  <a href={url(`/factions/${faction.id}/`)}>Faction: {faction.data.name} →</a>
+                )}
+              </p>
+            )}
+            {events.length > 0 && (
+              <>
+                <h3 class="map-panel-events-title">On the record</h3>
+                <ul class="map-panel-events">
+                  {events.map((ev) => (
+                    <li class:list={[{ battle: ev.kind === 'battle' }]}>
+                      <div class="ev-head">
+                        {sessionIdByNumber.has(ev.session) ? (
+                          <a href={url(`/sessions/${sessionIdByNumber.get(ev.session)}/`)}>
+                            Session {ev.session}
+                          </a>
+                        ) : (
+                          <span>Session {ev.session}</span>
+                        )}
+                        <span class="ev-title">{ev.title}</span>
+                      </div>
+                      {ev.note && <p class="ev-note">{ev.note}</p>}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </template>
+        ))
+      }
+    </aside>
+  </div>
+</Base>
+
+<script>
+  const svg = document.getElementById('map-svg') as unknown as SVGSVGElement;
+  const frame = document.getElementById('map-frame')!;
+  const tooltip = document.getElementById('map-tooltip')!;
+  const panelHome = document.getElementById('map-panel-home')!;
+  const panelDetail = document.getElementById('map-panel-detail')!;
+  const panel = document.getElementById('map-panel')!;
+
+  // ---- Pan & zoom via viewBox ---------------------------------------------
+  const BASE = { x: 0, y: 0, w: 1000, h: 750 };
+  const MIN_W = BASE.w / 5;
+  let vb = { ...BASE };
+
+  function applyViewBox() {
+    const maxX = BASE.x + BASE.w - vb.w + 60;
+    const maxY = BASE.y + BASE.h - vb.h + 60;
+    vb.x = Math.min(Math.max(vb.x, BASE.x - 60), Math.max(maxX, BASE.x - 60));
+    vb.y = Math.min(Math.max(vb.y, BASE.y - 60), Math.max(maxY, BASE.y - 60));
+    svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+    hideTip();
+  }
+
+  function clientToMap(clientX: number, clientY: number) {
+    const rect = svg.getBoundingClientRect();
+    return {
+      x: vb.x + ((clientX - rect.left) / rect.width) * vb.w,
+      y: vb.y + ((clientY - rect.top) / rect.height) * vb.h,
+    };
+  }
+
+  function zoomAt(clientX: number, clientY: number, factor: number) {
+    const focus = clientToMap(clientX, clientY);
+    const w = Math.min(Math.max(vb.w / factor, MIN_W), BASE.w);
+    const h = w * (BASE.h / BASE.w);
+    vb = {
+      x: focus.x - ((focus.x - vb.x) / vb.w) * w,
+      y: focus.y - ((focus.y - vb.y) / vb.h) * h,
+      w,
+      h,
+    };
+    applyViewBox();
+  }
+
+  svg.addEventListener(
+    'wheel',
+    (e) => {
+      e.preventDefault();
+      zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY * 0.0016));
+    },
+    { passive: false }
+  );
+
+  const pointers = new Map<number, { x: number; y: number }>();
+  let dragDistance = 0;
+
+  svg.addEventListener('pointerdown', (e) => {
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 1) dragDistance = 0;
+  });
+
+  svg.addEventListener('pointermove', (e) => {
+    const prev = pointers.get(e.pointerId);
+    if (!prev) return;
+    const rect = svg.getBoundingClientRect();
+    const scale = vb.w / rect.width;
+
+    if (pointers.size === 1) {
+      dragDistance += Math.hypot(e.clientX - prev.x, e.clientY - prev.y);
+      // Capture only once a real drag starts — capturing on pointerdown would
+      // retarget the click event to the svg and break marker clicks.
+      if (dragDistance > 5 && !svg.hasPointerCapture(e.pointerId)) {
+        svg.setPointerCapture(e.pointerId);
+      }
+      vb.x -= (e.clientX - prev.x) * scale;
+      vb.y -= (e.clientY - prev.y) * scale;
+      applyViewBox();
+    } else if (pointers.size === 2) {
+      if (!svg.hasPointerCapture(e.pointerId)) svg.setPointerCapture(e.pointerId);
+      const other = [...pointers.entries()].find(([id]) => id !== e.pointerId)![1];
+      const prevDist = Math.hypot(prev.x - other.x, prev.y - other.y);
+      const newDist = Math.hypot(e.clientX - other.x, e.clientY - other.y);
+      const midX = (e.clientX + other.x) / 2;
+      const midY = (e.clientY + other.y) / 2;
+      dragDistance += 10;
+      if (prevDist > 0) zoomAt(midX, midY, newDist / prevDist);
+      vb.x -= (midX - (prev.x + other.x) / 2) * scale;
+      vb.y -= (midY - (prev.y + other.y) / 2) * scale;
+      applyViewBox();
+    }
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  });
+
+  const releasePointer = (e: PointerEvent) => pointers.delete(e.pointerId);
+  svg.addEventListener('pointerup', releasePointer);
+  svg.addEventListener('pointercancel', releasePointer);
+
+  document.getElementById('map-zoom-in')!.addEventListener('click', () => {
+    const rect = svg.getBoundingClientRect();
+    zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, 1.4);
+  });
+  document.getElementById('map-zoom-out')!.addEventListener('click', () => {
+    const rect = svg.getBoundingClientRect();
+    zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, 1 / 1.4);
+  });
+  document.getElementById('map-zoom-reset')!.addEventListener('click', () => {
+    vb = { ...BASE };
+    applyViewBox();
+  });
+
+  // ---- Tooltip --------------------------------------------------------------
+  function hideTip() {
+    tooltip.hidden = true;
+  }
+
+  for (const el of svg.querySelectorAll<SVGGraphicsElement>('[data-tip-title]')) {
+    el.addEventListener('pointerenter', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      tooltip.querySelector('.tip-title')!.textContent = el.dataset.tipTitle ?? '';
+      tooltip.querySelector('.tip-sub')!.textContent = el.dataset.tipSub ?? '';
+      const elRect = el.getBoundingClientRect();
+      const frameRect = frame.getBoundingClientRect();
+      tooltip.hidden = false;
+      const x = elRect.left + elRect.width / 2 - frameRect.left;
+      const y = elRect.top - frameRect.top;
+      tooltip.style.left = `${x}px`;
+      tooltip.style.top = `${y}px`;
+    });
+    el.addEventListener('pointerleave', hideTip);
+  }
+
+  // ---- Detail panel -----------------------------------------------------------
+  function closePanel() {
+    panelDetail.hidden = true;
+    panelDetail.innerHTML = '';
+    panelHome.hidden = false;
+    for (const m of svg.querySelectorAll('.map-marker.selected')) m.classList.remove('selected');
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+
+  function openLocation(slug: string, scrollTo = false) {
+    const tpl = panel.querySelector<HTMLTemplateElement>(`template[data-loc="${slug}"]`);
+    if (!tpl) return;
+    panelDetail.innerHTML = '';
+    panelDetail.appendChild(tpl.content.cloneNode(true));
+    panelDetail.hidden = false;
+    panelHome.hidden = true;
+    for (const m of svg.querySelectorAll('.map-marker.selected')) m.classList.remove('selected');
+    svg.querySelector(`.map-marker[data-slug="${slug}"]`)?.classList.add('selected');
+    history.replaceState(null, '', `#${slug}`);
+    if (scrollTo && window.matchMedia('(max-width: 900px)').matches) {
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  panel.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('.map-panel-close')) closePanel();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !panelDetail.hidden) closePanel();
+  });
+
+  for (const el of svg.querySelectorAll<SVGGraphicsElement>('[data-open]')) {
+    el.addEventListener('click', () => {
+      if (dragDistance > 5) return; // it was a pan, not a click
+      openLocation(el.dataset.open!, true);
+    });
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openLocation(el.dataset.open!, true);
+      }
+    });
+  }
+
+  // Deep link: /map/#phandalin opens that location.
+  if (location.hash.length > 1) openLocation(decodeURIComponent(location.hash.slice(1)));
+</script>
