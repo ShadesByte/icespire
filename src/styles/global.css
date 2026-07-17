@@ -635,6 +635,11 @@ body {
   --map-pool: #172433;
   --map-dig: #26323e;
   --map-path: #232e39;
+  --map-sea-deep: #0b1015;
+  --map-canopy: rgba(63, 92, 77, 0.26);
+  --map-glow: rgba(201, 163, 92, 0.45);
+  --map-vignette: rgba(0, 0, 0, 0.3);
+  --map-elev: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45));
 }
 
 [data-theme='light'] {
@@ -654,6 +659,11 @@ body {
   --map-pool: #cfe2ec;
   --map-dig: #eceff1;
   --map-path: #e0e6e9;
+  --map-sea-deep: #c7d9e4;
+  --map-canopy: rgba(93, 125, 107, 0.18);
+  --map-glow: rgba(143, 106, 44, 0.3);
+  --map-vignette: rgba(30, 38, 46, 0.1);
+  --map-elev: drop-shadow(0 1px 2px rgba(30, 38, 46, 0.18));
 }
 
 .map-layout {
@@ -678,6 +688,43 @@ body {
   overflow: hidden;
 }
 
+/* Atmosphere: a soft vignette over every map */
+.map-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at center, transparent 62%, var(--map-vignette) 100%);
+  z-index: 1;
+}
+
+.map-controls {
+  z-index: 2;
+}
+
+/* Nudge shown while session pins are hidden at the resting zoom */
+.map-zoom-note {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  z-index: 2;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  padding: 3px 12px;
+  pointer-events: none;
+  transition: opacity var(--duration-normal) var(--ease-standard);
+}
+
+.map-svg[data-zoom='in'] ~ .map-zoom-note {
+  opacity: 0;
+}
+
 .map-svg {
   display: block;
   width: 100%;
@@ -693,6 +740,43 @@ body {
 /* Terrain */
 .m-land { fill: var(--map-land); }
 .m-sea { fill: var(--map-sea); }
+.m-sea-deep { fill: var(--map-sea-deep); }
+
+.m-canopy {
+  fill: var(--map-canopy);
+  stroke: var(--map-forest);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  opacity: 0.9;
+}
+
+.m-ridge-wash {
+  fill: var(--map-peak-fill);
+  opacity: 0.55;
+}
+
+.m-sheet {
+  fill: none;
+  stroke: var(--accent-gold-muted);
+  stroke-width: 1.2;
+  opacity: 0.3;
+}
+
+.m-title-main {
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  fill: var(--text-primary);
+}
+
+.m-title-sub {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 12.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  fill: var(--text-muted);
+}
 
 .m-shore {
   fill: none;
@@ -791,7 +875,11 @@ body {
   letter-spacing: 0.18em;
   text-transform: uppercase;
   fill: var(--map-label);
-  opacity: 0.75;
+  opacity: 0.85;
+  paint-order: stroke;
+  stroke: var(--map-land);
+  stroke-width: 3px;
+  stroke-linejoin: round;
 }
 
 .m-terrain-label .m-label-forest {
@@ -824,32 +912,52 @@ body {
   text-anchor: middle;
 }
 
-/* The party's route: older legs fade back, the newest leg glows, and
- * chevrons point the direction last travelled. */
-.map-route path {
+/* The party's route: one arc per traversal, in story order — paired arcs
+ * mean there-and-back. Each leg's opacity is set inline by recency. */
+.map-route {
+  filter: drop-shadow(0 0 4px var(--map-glow));
+}
+
+.map-route-leg .leg {
   fill: none;
   stroke: var(--accent-gold);
-  stroke-width: 2.4;
+  stroke-width: 2.2;
   stroke-dasharray: 7 5;
   stroke-linecap: round;
-  opacity: 0.45;
 }
 
-.map-route path.latest {
+.map-route-leg.latest .leg {
   stroke-width: 3;
-  opacity: 0.95;
 }
 
-.map-route .map-route-chevron {
-  stroke-dasharray: none;
+.map-route-leg .map-route-chevron {
+  fill: none;
+  stroke: var(--accent-gold);
   stroke-width: 2;
   stroke-linejoin: round;
-  opacity: 0.7;
 }
 
-.map-route .map-route-chevron.latest {
+.map-route-leg.latest .map-route-chevron {
   stroke-width: 2.6;
-  opacity: 1;
+}
+
+/* Session tags along the route, revealed with the pins on zoom */
+.map-route-tags {
+  transition: opacity var(--duration-normal) var(--ease-standard);
+}
+
+.map-route-tags text {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  fill: var(--accent-gold-strong);
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: var(--map-land);
+  stroke-width: 3px;
+}
+
+.map-svg[data-zoom='out'] .map-route-tags {
+  opacity: 0;
 }
 
 /* Where the party currently stands */
@@ -920,6 +1028,11 @@ body {
 
 .map-marker.danger .dot {
   stroke: var(--accent-ember);
+}
+
+.map-marker.s-visited .dot,
+.map-here .here-ring {
+  filter: drop-shadow(0 0 3px var(--map-glow));
 }
 
 .map-marker.s-visited.danger .dot {
@@ -1073,6 +1186,13 @@ body {
   stroke: var(--map-shore);
   stroke-width: 3;
   stroke-linejoin: round;
+}
+
+/* Depth: structures sit slightly above the ground plane */
+.sm-floor,
+.sm-building,
+.sm-rock {
+  filter: var(--map-elev);
 }
 
 .sm-inner { fill: none; stroke: var(--map-shore); stroke-width: 1.5; }

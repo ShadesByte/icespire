@@ -23,26 +23,30 @@ function requireLoc(slug: string, context: string) {
   return loc;
 }
 
-// ---- Party route: unique segments between consecutive stops, gently bowed
-// so overlapping back-and-forth legs read as one hand-drawn trail. Each edge
-// remembers its most recent traversal (session + direction) so the map can
-// dim older legs, brighten the latest one, and point chevrons the way the
-// party last travelled.
-interface RouteEdge {
+// ---- Party route, drawn chronologically: every traversal of a stretch is
+// its own gently-bowed arc, so an out-and-back trip renders as two parallel
+// curves with opposing chevrons — the journey reads in story order.
+// Later sessions draw brighter; the newest leg is the boldest.
+interface Traversal {
   d: string;
-  ax: number;
-  ay: number;
-  bx: number;
-  by: number;
-  cx: number;
-  cy: number;
-  fromId: string;
-  lastSession: number;
-  reversed: boolean;
+  midX: number;
+  midY: number;
+  tagX: number;
+  tagY: number;
+  angle: number;
+  session: number;
+  opacity: number;
+  latest: boolean;
 }
 
-const edgeMap = new Map<string, RouteEdge>();
-let bowIndex = 0;
+const repCount = new Map<string, number>();
+const routeSessions = journey
+  .filter((leg) => leg.data.route.length > 1)
+  .map((leg) => leg.data.session);
+const lastRouteSession = routeSessions[routeSessions.length - 1] ?? 0;
+const rankDenom = Math.max(1, routeSessions.length - 1);
+const traversals: Traversal[] = [];
+
 for (const leg of journey) {
   const stops = leg.data.route.map((slug) =>
     requireLoc(slug, `journey session ${leg.data.session} route`)
@@ -51,43 +55,43 @@ for (const leg of journey) {
     const a = stops[i];
     const b = stops[i + 1];
     const key = [a.id, b.id].sort().join('|');
-    const existing = edgeMap.get(key);
-    if (existing) {
-      existing.lastSession = leg.data.session;
-      existing.reversed = existing.fromId !== a.id;
-      continue;
-    }
+    const rep = repCount.get(key) ?? 0;
+    repCount.set(key, rep + 1);
+
     const dx = b.data.x - a.data.x;
     const dy = b.data.y - a.data.y;
     const len = Math.hypot(dx, dy) || 1;
-    const bow = Math.min(0.14 * len, 20) * (bowIndex++ % 2 === 0 ? 1 : -1);
+    // First pass bows one way, the return trip the other, a third pass bows
+    // wider — computed against a canonical orientation so the sides hold no
+    // matter which way the party walked it.
+    const orient = a.id < b.id ? 1 : -1;
+    const side = rep === 0 ? 1 : rep === 1 ? -1 : 1.9;
+    const bow = Math.min(0.13 * len, 16) * side * orient;
     const cx = (a.data.x + b.data.x) / 2 - (dy / len) * bow;
     const cy = (a.data.y + b.data.y) / 2 + (dx / len) * bow;
-    edgeMap.set(key, {
+
+    const midX = 0.25 * a.data.x + 0.5 * cx + 0.25 * b.data.x;
+    const midY = 0.25 * a.data.y + 0.5 * cy + 0.25 * b.data.y;
+    const chordMidX = (a.data.x + b.data.x) / 2;
+    const chordMidY = (a.data.y + b.data.y) / 2;
+    let tagX = midX + (midX - chordMidX) * 2.4;
+    let tagY = midY + (midY - chordMidY) * 2.4;
+    if (Math.abs(midX - chordMidX) < 1 && Math.abs(midY - chordMidY) < 1) tagY -= 11;
+
+    const rank = routeSessions.indexOf(leg.data.session);
+    traversals.push({
       d: `M ${a.data.x} ${a.data.y} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${b.data.x} ${b.data.y}`,
-      ax: a.data.x,
-      ay: a.data.y,
-      bx: b.data.x,
-      by: b.data.y,
-      cx,
-      cy,
-      fromId: a.id,
-      lastSession: leg.data.session,
-      reversed: false,
+      midX,
+      midY,
+      tagX,
+      tagY,
+      angle: (Math.atan2(dy, dx) * 180) / Math.PI,
+      session: leg.data.session,
+      opacity: 0.4 + 0.6 * (rank / rankDenom),
+      latest: leg.data.session === lastRouteSession,
     });
   }
 }
-
-const latestRouteSession = Math.max(0, ...[...edgeMap.values()].map((e) => e.lastSession));
-const routeEdges = [...edgeMap.values()].map((e) => {
-  // Midpoint and tangent of the quadratic curve at t = 0.5; for a quadratic
-  // the tangent there is simply endpoint − start.
-  const midX = 0.25 * e.ax + 0.5 * e.cx + 0.25 * e.bx;
-  const midY = 0.25 * e.ay + 0.5 * e.cy + 0.25 * e.by;
-  let angle = (Math.atan2(e.by - e.ay, e.bx - e.ax) * 180) / Math.PI;
-  if (e.reversed) angle += 180;
-  return { ...e, midX, midY, angle, latest: e.lastSession === latestRouteSession };
-});
 
 // Where the party currently stands: the last stop of the latest session
 // that recorded any travel.
@@ -199,15 +203,22 @@ const entries = await Promise.all(
         <MapTerrain />
 
         <g class="map-route" aria-hidden="true">
-          {routeEdges.map((e) => (
-            <path class:list={[{ latest: e.latest }]} d={e.d} />
+          {traversals.map((t) => (
+            <g class:list={['map-route-leg', { latest: t.latest }]} style={`opacity:${t.opacity.toFixed(2)}`}>
+              <path class="leg" d={t.d} />
+              <path
+                class="map-route-chevron"
+                d="M -5 -4.5 L 4 0 L -5 4.5"
+                transform={`translate(${t.midX.toFixed(1)} ${t.midY.toFixed(1)}) rotate(${t.angle.toFixed(1)})`}
+              />
+            </g>
           ))}
-          {routeEdges.map((e) => (
-            <path
-              class:list={['map-route-chevron', { latest: e.latest }]}
-              d="M -5 -4.5 L 4 0 L -5 4.5"
-              transform={`translate(${e.midX.toFixed(1)} ${e.midY.toFixed(1)}) rotate(${e.angle.toFixed(1)})`}
-            />
+        </g>
+        <g class="map-route-tags" aria-hidden="true">
+          {traversals.map((t) => (
+            <text x={t.tagX.toFixed(1)} y={t.tagY.toFixed(1)}>
+              S{t.session}
+            </text>
           ))}
         </g>
 
@@ -301,6 +312,7 @@ const entries = await Promise.all(
         <div class="tip-title"></div>
         <div class="tip-sub"></div>
       </div>
+      <div class="map-zoom-note" aria-hidden="true">Zoom in to reveal session events</div>
     </div>
 
     {
@@ -327,7 +339,7 @@ const entries = await Promise.all(
           <li><span class="legend-dot danger"></span> Ember means danger</li>
           <li><span class="legend-pin"></span> Event — the number is the session</li>
           <li><span class="legend-pin battle"></span> Battle</li>
-          <li><span class="legend-route"></span> The party's route — chevrons point the way; the newest leg glows brightest</li>
+          <li><span class="legend-route"></span> The party's route — chevrons point the way travelled; brighter legs are more recent, and paired arcs mean there and back</li>
           <li><span class="legend-here"></span> Where the party now stands</li>
         </ul>
         <p class="map-panel-hint">
