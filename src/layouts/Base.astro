@@ -1,4 +1,5 @@
 ---
+import EntityLinks from '../components/EntityLinks.astro';
 import { url } from '../utils/url';
 import '../styles/global.css';
 
@@ -11,6 +12,7 @@ const { title, description = 'A chronicle of our Dragon of Icespire Peak campaig
   Astro.props;
 
 const navItems = [
+  { href: '/', label: 'Home', match: [] },
   { href: '/sessions/', label: 'Recaps', match: ['/sessions/'] },
   { href: '/campaign/', label: 'Campaign', match: ['/campaign/'] },
   { href: '/map/', label: 'Map', match: ['/map/'] },
@@ -21,7 +23,9 @@ const navItems = [
 
 const currentPath = Astro.url.pathname;
 const isActive = (item: (typeof navItems)[number]) =>
-  item.match.some((prefix) => currentPath.startsWith(url(prefix)));
+  item.href === '/'
+    ? currentPath.replace(/\/$/, '') === url('/').replace(/\/$/, '')
+    : item.match.some((prefix) => currentPath.startsWith(url(prefix)));
 ---
 
 <html lang="en">
@@ -55,7 +59,13 @@ const isActive = (item: (typeof navItems)[number]) =>
     <main class="page">
       <slot />
     </main>
-    <footer class="site-footer">A chronicle kept by the party. Updated between sessions.</footer>
+    <footer class="site-footer">
+      <nav class="footer-nav">
+        {navItems.map((item) => <a href={url(item.href)}>{item.label}</a>)}
+      </nav>
+      A chronicle kept by the party. Updated between sessions.
+    </footer>
+    <EntityLinks />
     <script is:inline>
       (() => {
         const root = document.documentElement;

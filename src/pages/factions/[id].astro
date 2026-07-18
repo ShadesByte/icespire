@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import { url } from '../../utils/url';
 
 export async function getStaticPaths() {
   const factions = await getCollection('factions');
@@ -15,6 +16,7 @@ const metaLine = [faction.data.type, faction.data.alignment, faction.data.status
 ---
 
 <Base title={faction.data.name}>
+  <a class="backlink" href={url('/codex/')}>← Codex</a>
   <div class="kicker">Faction</div>
   <h1 class="page-title" style="margin-bottom: var(--space-3);">{faction.data.name}</h1>
   {metaLine && <p class="session-meta">{metaLine}</p>}

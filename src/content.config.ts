@@ -24,6 +24,8 @@ const sessions = defineCollection({
           name: z.string(),
           image: z.string(), // path under /public
           note: z.string().optional(),
+          // Optional site link (an NPC page, a map anchor, ...).
+          href: z.string().optional(),
         })
       )
       .default([]),

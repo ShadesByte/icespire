@@ -19,6 +19,7 @@ const statusNote =
 ---
 
 <Base title={character.data.name}>
+  <a class="backlink" href={url('/characters/')}>← Party roster</a>
   <CharacterCard
     name={`${character.data.name}${statusNote}`}
     player={character.data.player}
