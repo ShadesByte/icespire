@@ -11,6 +11,7 @@ encounters:
   - name: 'Orc Encampment'
     image: '/images/creatures/orc.webp'
     note: 'A large camp down a split trail — spotted from the tracks and carefully bypassed.'
+    href: '/map/#orc-encampment'
 ---
 
 The session picked up in the immediate aftermath of the manticore fight at the

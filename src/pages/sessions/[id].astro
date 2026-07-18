@@ -5,11 +5,25 @@ import CreatureCard from '../../components/CreatureCard.astro';
 import { url } from '../../utils/url';
 
 export async function getStaticPaths() {
-  const sessions = await getCollection('sessions');
-  return sessions.map((session) => ({ params: { id: session.id }, props: { session } }));
+  const sessions = (await getCollection('sessions')).sort(
+    (a, b) => a.data.sessionNumber - b.data.sessionNumber
+  );
+  // Drafts get pages but stay out of the prev/next chain.
+  const published = sessions.filter((s) => !s.data.draft);
+  return sessions.map((session) => {
+    const i = published.findIndex((s) => s.id === session.id);
+    return {
+      params: { id: session.id },
+      props: {
+        session,
+        prev: i > 0 ? published[i - 1] : null,
+        next: i >= 0 && i < published.length - 1 ? published[i + 1] : null,
+      },
+    };
+  });
 }
 
-const { session } = Astro.props;
+const { session, prev, next } = Astro.props;
 const { Content } = await render(session);
 const dateStr = session.data.date.toLocaleDateString('en-US', {
   month: 'short',
@@ -19,6 +33,7 @@ const dateStr = session.data.date.toLocaleDateString('en-US', {
 ---
 
 <Base title={`Session ${session.data.sessionNumber}: ${session.data.title}`}>
+  <a class="backlink" href={url('/sessions/')}>← All recaps</a>
   <div class="recap-kicker">
     Session {session.data.sessionNumber}
     <span class="date">{dateStr}</span>
@@ -42,10 +57,34 @@ const dateStr = session.data.date.toLocaleDateString('en-US', {
               name={encounter.name}
               image={url(encounter.image)}
               note={encounter.note}
+              href={encounter.href ? url(encounter.href) : undefined}
             />
           ))}
         </div>
       </section>
     )
   }
+  <nav class="session-pager" aria-label="Session navigation">
+    {
+      prev ? (
+        <a class="pager-link prev" href={url(`/sessions/${prev.id}/`)}>
+          <span class="pager-dir">← Session {prev.data.sessionNumber}</span>
+          <span class="pager-title">{prev.data.title}</span>
+        </a>
+      ) : (
+        <span />
+      )
+    }
+    <a class="pager-all" href={url('/sessions/')}>All recaps</a>
+    {
+      next ? (
+        <a class="pager-link next" href={url(`/sessions/${next.id}/`)}>
+          <span class="pager-dir">Session {next.data.sessionNumber} →</span>
+          <span class="pager-title">{next.data.title}</span>
+        </a>
+      ) : (
+        <span />
+      )
+    }
+  </nav>
 </Base>

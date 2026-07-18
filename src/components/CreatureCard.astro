@@ -6,9 +6,10 @@ interface Props {
   name: string;
   image: string;
   note?: string;
+  href?: string;
 }
 
-const { name, image, note } = Astro.props;
+const { name, image, note, href } = Astro.props;
 ---
 
 <figure class="creature-card">
@@ -16,7 +17,7 @@ const { name, image, note } = Astro.props;
     <img src={image} alt={`Official art of ${name}`} loading="lazy" />
   </div>
   <figcaption>
-    <div class="creature-name">{name}</div>
+    <div class="creature-name">{href ? <a href={href}>{name}</a> : name}</div>
     {note && <div class="creature-note">{note}</div>}
   </figcaption>
 </figure>

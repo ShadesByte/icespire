@@ -11,6 +11,7 @@ encounters:
   - name: 'Facktoré'
     image: '/images/creatures/rock-gnome-recluse.webp'
     note: 'Opened fire on Thom with a crossbow ballista. Slept, tied up, robbed of 10 gold.'
+    href: '/npcs/facktore/'
 ---
 
 The party woke and prepared bacon for breakfast. Rut seemed interested in
