@@ -21,8 +21,8 @@ party has never learned anything better. His real name remains a mystery.
 - Freed the crazed gnome Facktoré mid-argument, letting her screech off into
   the wild — she is still at large (Session 2).
 - Spent his last spell slot on Goodberry to patch the party up after the
-  manticore fight, and ripped a tail spike from a manticore corpse to keep as
-  an improvised dagger (Session 5).
+  manticore fight, and ripped a tail spike from a manticore corpse. He kept
+  it. He hasn't said why (Session 5).
 - Absorbed a nasty acid hit with Absorb Elements, then Wild Shaped into a boar
   to tank the ochre jellies (Session 5).
 - Fished a gold necklace out of a dead jelly's acidic remains with the Pole of

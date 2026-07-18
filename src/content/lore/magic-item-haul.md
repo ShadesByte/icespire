@@ -20,4 +20,5 @@ The running inventory:
   Carried by Rut. Nobody in-game has flagged the risk.
 - **The gemstone coffer's contents** — rubies, emeralds, topaz, held by Thom.
   Not magical as far as anyone knows; definitely not declared to the dwarves.
-- **A manticore tail spike** — Rut's improvised dagger.
+- **A manticore tail spike** — pulled from a corpse by Rut, who kept it
+  without saying why.
