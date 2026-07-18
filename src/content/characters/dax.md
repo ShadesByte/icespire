@@ -7,7 +7,7 @@ level: 2
 status: active
 portrait: '/images/characters/dax.webp'
 tagline: 'Follows the coin. The coin is currently in Phandalin.'
-traits: ['Mercenary', 'Ex-Soldier', 'Ring Fighter', 'Speaks Dwarvish', 'Champion at Level 3', 'True Neutral']
+traits: ['Mercenary', 'Ex-Soldier', 'Ring Fighter', 'Speaks Dwarvish', 'True Neutral']
 ---
 
 The party found Dax in Session 2, wounded amid five dead orcs on a parallel

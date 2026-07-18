@@ -22,6 +22,7 @@ const npcs = (await getCollection('npcs')).sort((a, b) => a.data.name.localeComp
             status={npc.data.status}
             note={npc.data.note}
             href={url(`/npcs/${npc.id}/`)}
+            portrait={npc.data.portrait ? url(npc.data.portrait) : undefined}
           />
         ))}
       </ul>
