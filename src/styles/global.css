@@ -146,6 +146,264 @@ body {
   box-shadow: var(--shadow-card);
 }
 
+/* ---------- Homepage ---------- */
+
+.home-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+@media (max-width: 800px) {
+  .home-hero {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+}
+
+/* The official module cover, presented like the book itself. */
+.hero-cover {
+  display: block;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-strong);
+  overflow: hidden;
+  box-shadow: var(--shadow-raised);
+  transition: box-shadow var(--duration-normal) var(--ease-standard);
+}
+
+.hero-cover:hover {
+  box-shadow: var(--shadow-gold-glow), var(--shadow-raised);
+}
+
+.hero-cover img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+@media (max-width: 800px) {
+  .hero-cover {
+    max-width: 300px;
+    justify-self: center;
+    order: -1;
+  }
+}
+
+.hero-stats {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  margin: var(--space-5) 0 0;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.hero-stats .stat-num {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  color: var(--accent-gold);
+  margin-right: 2px;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.btn-gold,
+.btn-ghost {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-wide);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  padding: 8px 20px;
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+.btn-gold {
+  background: var(--accent-gold);
+  color: var(--text-on-gold);
+  border: 1px solid var(--accent-gold);
+}
+
+.btn-gold:hover {
+  background: var(--accent-gold-strong);
+  border-color: var(--accent-gold-strong);
+  color: var(--text-on-gold);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-strong);
+}
+
+.btn-ghost:hover {
+  color: var(--text-primary);
+  border-color: var(--accent-gold);
+}
+
+.home-section {
+  margin-top: var(--space-8);
+}
+
+.section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.section-head .kicker {
+  margin-bottom: var(--space-1);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  color: var(--text-primary);
+  font-size: var(--text-xl);
+  line-height: var(--leading-tight);
+  margin: 0;
+}
+
+.section-link {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--link);
+  text-decoration: none;
+  white-space: nowrap;
+  padding-bottom: 2px;
+}
+
+.section-link:hover {
+  color: var(--link-hover);
+}
+
+.archive-link {
+  display: block;
+  margin-top: var(--space-5);
+  padding: var(--space-4) var(--space-5);
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  text-decoration: none;
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+.archive-link:hover {
+  color: var(--link-hover);
+  border-color: var(--accent-gold);
+}
+
+/* Roster strip: one small portrait per party member */
+.party-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: var(--space-4);
+}
+
+.party-member {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  text-align: center;
+}
+
+.party-portrait {
+  width: 100%;
+  max-width: 110px;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  object-position: center top;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--bg-inset);
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+
+.party-portrait.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+}
+
+.party-member:hover .party-portrait {
+  border-color: var(--accent-gold);
+}
+
+.party-name {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+}
+
+.party-member:hover .party-name {
+  color: var(--link-hover);
+}
+
+.party-class {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: -4px;
+}
+
+/* Quick links into the reference sections */
+.explore-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-5);
+}
+
+.explore-card {
+  display: block;
+  text-decoration: none;
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+
+.explore-card:hover {
+  border-color: var(--accent-gold);
+}
+
+.explore-card h3 {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2);
+}
+
+.explore-card p {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+}
+
 /* ---------- SessionRecapCard ---------- */
 
 .recap-feed {
