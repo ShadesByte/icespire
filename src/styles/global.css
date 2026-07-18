@@ -454,6 +454,78 @@ body {
   margin: 0;
 }
 
+/* Creature-art chips in the recap card corner */
+.recap-thumbs {
+  display: flex;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.recap-thumbs img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: var(--bg-inset);
+  border: 1px solid var(--border-default);
+  padding: 3px;
+}
+
+/* ---------- Encounter gallery (session pages) ---------- */
+
+.encounter-section {
+  margin-top: var(--space-7);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-6);
+}
+
+.encounter-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: var(--space-5);
+  margin-top: var(--space-4);
+}
+
+.creature-card {
+  margin: 0;
+}
+
+.creature-art {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: var(--space-4);
+  background:
+    radial-gradient(ellipse at 50% 72%, var(--accent-gold-wash), transparent 68%),
+    var(--bg-inset);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.creature-art img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
+}
+
+.creature-name {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  color: var(--text-primary);
+  margin-top: var(--space-3);
+}
+
+.creature-note {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  margin-top: var(--space-1);
+}
+
 /* Full-page recap header */
 .session-title {
   font-family: var(--font-display);

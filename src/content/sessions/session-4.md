@@ -4,6 +4,10 @@ sessionNumber: 4
 date: 2026-06-22
 summary: 'Harbin pays out and posts two contracts, Thornton reveals a Zhentarim pin and crossbows, and two manticores meet the party at Umbrage Hill.'
 playersPresent: ['Nolan', 'Nate', 'Jay', 'Christa', 'Joseph', 'Brittany', 'Samuel']
+encounters:
+  - name: 'Manticores'
+    image: '/images/creatures/manticore.webp'
+    note: 'Two of them, circling the Umbrage Hill windmill. The windmill mostly survived.'
 ---
 
 After wrapping up business at Gnomengarde, the party headed back to Phandalin

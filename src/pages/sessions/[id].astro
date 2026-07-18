@@ -1,6 +1,8 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import CreatureCard from '../../components/CreatureCard.astro';
+import { url } from '../../utils/url';
 
 export async function getStaticPaths() {
   const sessions = await getCollection('sessions');
@@ -30,4 +32,20 @@ const dateStr = session.data.date.toLocaleDateString('en-US', {
   <div class="prose">
     <Content />
   </div>
+  {
+    session.data.encounters.length > 0 && (
+      <section class="encounter-section">
+        <div class="kicker">Encountered this session</div>
+        <div class="encounter-strip">
+          {session.data.encounters.map((encounter) => (
+            <CreatureCard
+              name={encounter.name}
+              image={url(encounter.image)}
+              note={encounter.note}
+            />
+          ))}
+        </div>
+      </section>
+    )
+  }
 </Base>

@@ -4,6 +4,10 @@ sessionNumber: 3
 date: 2026-05-18
 summary: 'A paranoid king, a bound queen, a goopy rope bridge, and two very real mimics. The contract is delivered.'
 playersPresent: ['Nolan', 'Nate', 'Jay', 'Christa', 'Joseph', 'Brittany', 'Samuel']
+encounters:
+  - name: 'Mimics'
+    image: '/images/creatures/mimic.webp'
+    note: 'Two of them, in a storage room. King Korboz was right to check everything.'
 ---
 
 Deeper into Gnomengarde:
