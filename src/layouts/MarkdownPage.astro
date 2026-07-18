@@ -7,14 +7,39 @@ interface Props {
     description?: string;
     kicker?: string;
   };
+  headings?: { depth: number; slug: string; text: string }[];
 }
 
-const { frontmatter } = Astro.props;
+const { frontmatter, headings = [] } = Astro.props;
+
+// Build a contents rail from the section headings (h2/h3). It fills the
+// space beside the reading column on long pages and doubles as in-page
+// navigation. Skip it on short pages that don't have enough sections.
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const showToc = toc.length >= 3;
 ---
 
 <Base title={frontmatter.title} description={frontmatter.description}>
   {frontmatter.kicker && <div class="kicker">{frontmatter.kicker}</div>}
-  <div class="prose">
-    <slot />
+  <div class={`doc-layout${showToc ? '' : ' no-aside'}`}>
+    <div class="prose">
+      <slot />
+    </div>
+    {
+      showToc && (
+        <aside class="doc-toc" aria-label="On this page">
+          <div class="doc-toc-title">On this page</div>
+          <nav>
+            <ul>
+              {toc.map((h) => (
+                <li class={h.depth === 3 ? 'sub' : undefined}>
+                  <a href={`#${h.slug}`}>{h.text}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </aside>
+      )
+    }
   </div>
 </Base>
