@@ -5,9 +5,12 @@ interface Props {
   title: string;
   excerpt?: string;
   href: string;
+  // Small creature-art chips shown in the card corner. Image URLs must
+  // already be prefixed (see utils/url).
+  encounters?: { name: string; image: string }[];
 }
 
-const { sessionNumber, date, title, excerpt, href } = Astro.props;
+const { sessionNumber, date, title, excerpt, href, encounters = [] } = Astro.props;
 const dateStr = date.toLocaleDateString('en-US', {
   month: 'short',
   day: 'numeric',
@@ -19,6 +22,15 @@ const dateStr = date.toLocaleDateString('en-US', {
   <div class="recap-kicker">
     Session {sessionNumber}
     <span class="date">{dateStr}</span>
+    {
+      encounters.length > 0 && (
+        <span class="recap-thumbs">
+          {encounters.map((encounter) => (
+            <img src={encounter.image} alt={encounter.name} title={encounter.name} loading="lazy" />
+          ))}
+        </span>
+      )
+    }
   </div>
   <h2><a href={href}>{title}</a></h2>
   {excerpt && <p class="excerpt">{excerpt}</p>}

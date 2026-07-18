@@ -4,6 +4,13 @@ sessionNumber: 5
 date: 2026-07-14
 summary: 'Adabra refuses to leave, an orc camp is bypassed, and the party splits jellies (literally) in a ruined temple to the god of greed.'
 playersPresent: ['Nolan', 'Nate', 'Jay', 'Christa', 'Joseph', 'Brittany', 'Samuel']
+encounters:
+  - name: 'Ochre Jellies'
+    image: '/images/creatures/ochre-jelly.webp'
+    note: 'Abbathor''s displeased priests, transformed. Slashing them only makes more of them.'
+  - name: 'Orc Encampment'
+    image: '/images/creatures/orc.webp'
+    note: 'A large camp down a split trail — spotted from the tracks and carefully bypassed.'
 ---
 
 The session picked up in the immediate aftermath of the manticore fight at the

@@ -23,6 +23,10 @@ const sessions = (await getCollection('sessions', ({ data }) => !data.draft)).so
             title={session.data.title}
             excerpt={session.data.summary}
             href={url(`/sessions/${session.id}/`)}
+            encounters={session.data.encounters.map((e) => ({
+              name: e.name,
+              image: url(e.image),
+            }))}
           />
         ))}
       </div>

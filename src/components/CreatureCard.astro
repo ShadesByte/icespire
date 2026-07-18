@@ -1,0 +1,22 @@
+---
+// One creature met during a session: official cutout art over an inset
+// backdrop, with a name and a one-line note. Expects an already-prefixed
+// image URL (see utils/url).
+interface Props {
+  name: string;
+  image: string;
+  note?: string;
+}
+
+const { name, image, note } = Astro.props;
+---
+
+<figure class="creature-card">
+  <div class="creature-art">
+    <img src={image} alt={`Official art of ${name}`} loading="lazy" />
+  </div>
+  <figcaption>
+    <div class="creature-name">{name}</div>
+    {note && <div class="creature-note">{note}</div>}
+  </figcaption>
+</figure>

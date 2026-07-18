@@ -4,6 +4,13 @@ sessionNumber: 2
 date: 2026-05-15
 summary: 'A wounded fighter amid five dead orcs joins the party, Gnomengarde is explored, and Facktoré opens fire.'
 playersPresent: ['Nolan', 'Nate', 'Jay', 'Christa', 'Joseph', 'Brittany', 'Samuel']
+encounters:
+  - name: 'Orcs'
+    image: '/images/creatures/orc.webp'
+    note: 'Five of them, already dead, arranged around one wounded fighter. Dax''s résumé.'
+  - name: 'Facktoré'
+    image: '/images/creatures/rock-gnome-recluse.webp'
+    note: 'Opened fire on Thom with a crossbow ballista. Slept, tied up, robbed of 10 gold.'
 ---
 
 The party woke and prepared bacon for breakfast. Rut seemed interested in

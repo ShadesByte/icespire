@@ -15,6 +15,18 @@ const sessions = defineCollection({
     summary: z.string().optional(),
     // Which players were at the table (handy with a 7-player roster).
     playersPresent: z.array(z.string()).default([]),
+    // Creatures and characters met this session, rendered as an art gallery
+    // at the end of the recap (and as thumbnails on the recap card).
+    // Official art lives under /images/creatures/.
+    encounters: z
+      .array(
+        z.object({
+          name: z.string(),
+          image: z.string(), // path under /public
+          note: z.string().optional(),
+        })
+      )
+      .default([]),
     draft: z.boolean().default(false),
   }),
 });
