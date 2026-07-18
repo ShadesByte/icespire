@@ -669,19 +669,114 @@ body {
   padding: 3px;
 }
 
-/* ---------- Encounter gallery (session pages) ---------- */
+/* ---------- Session page: prose + sidebar ---------- */
 
-.encounter-section {
-  margin-top: var(--space-7);
-  border-top: 1px solid var(--border-subtle);
-  padding-top: var(--space-6);
+.session-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--space-8);
+  align-items: start;
 }
 
-.encounter-strip {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+.session-layout.no-aside {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 900px) {
+  .session-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.session-aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.aside-encounters {
+  display: flex;
+  flex-direction: column;
   gap: var(--space-5);
+  margin-top: var(--space-3);
+}
+
+/* Below the prose (narrow screens) the art tiles sit side by side again */
+@media (max-width: 900px) {
+  .aside-encounters {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  }
+}
+
+/* ---------- Journey card (session sidebar) ---------- */
+
+.journey-route {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  line-height: var(--leading-snug);
+  color: var(--text-primary);
+  margin: var(--space-3) 0 var(--space-4);
+}
+
+.journey-route a {
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.journey-route a:hover {
+  color: var(--link-hover);
+}
+
+.journey-route .route-sep {
+  color: var(--accent-gold);
+  margin: 0 8px;
+}
+
+.journey-events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  font-family: var(--font-body);
+}
+
+.journey-events li {
+  border-left: 2px solid var(--accent-gold);
+  padding-left: var(--space-3);
+}
+
+.journey-events li.battle {
+  border-left-color: var(--accent-ember);
+}
+
+.journey-events .ev-title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+
+.journey-events .ev-place {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.journey-map-link {
+  display: inline-block;
   margin-top: var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--link);
+  text-decoration: none;
+}
+
+.journey-map-link:hover {
+  color: var(--link-hover);
 }
 
 .creature-card {
@@ -926,6 +1021,54 @@ body {
   gap: var(--space-4);
   padding: var(--space-4) 0;
   border-bottom: 1px solid var(--border-subtle);
+}
+
+.npc-entry-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.npc-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: var(--bg-inset);
+  border: 1px solid var(--border-default);
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.npc-thumb.monogram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-muted);
+}
+
+/* NPC detail page: prose beside the official art, when there is any */
+.npc-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: var(--space-8);
+  align-items: start;
+}
+
+.npc-layout.no-aside {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 900px) {
+  .npc-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .npc-portrait-card {
+    max-width: 260px;
+  }
 }
 
 .npc-entry .npc-name {
@@ -2085,6 +2228,40 @@ body {
   font-size: var(--text-sm);
   color: var(--text-secondary);
   line-height: var(--leading-normal);
+}
+
+/* ---------- 404 page ---------- */
+
+.notfound {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--space-8) 0;
+}
+
+.notfound-art {
+  width: 220px;
+  height: auto;
+  flex-shrink: 0;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.4));
+}
+
+@media (max-width: 640px) {
+  .notfound {
+    flex-direction: column;
+    text-align: center;
+    padding: var(--space-6) 0;
+  }
+
+  .notfound .hero-actions {
+    justify-content: center;
+  }
+
+  .notfound-art {
+    width: 170px;
+  }
 }
 
 /* ---------- Prose (rendered Markdown) ---------- */

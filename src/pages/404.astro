@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../utils/url';
+---
+
+<Base title="Page Not Found" description="This page doesn't exist — or hasn't been discovered yet.">
+  <section class="notfound">
+    <img
+      class="notfound-art"
+      src={url('/images/creatures/mimic.webp')}
+      alt="Official art of a mimic, disguised as a treasure chest"
+      width="220"
+      loading="eager"
+    />
+    <div class="notfound-body">
+      <div class="kicker">Error 404</div>
+      <h1 class="page-title">This page was a mimic</h1>
+      <div class="prose">
+        <p>
+          It looked like a real page from a distance, but there's nothing here — the
+          address may be mistyped, moved, or simply not discovered yet. King Korboz
+          was right: check <em>everything</em>.
+        </p>
+      </div>
+      <div class="hero-actions">
+        <a class="btn-gold" href={url('/')}>Back to safety</a>
+        <a class="btn-ghost" href={url('/sessions/')}>Read the recaps</a>
+        <a class="btn-ghost" href={url('/map/')}>Consult the map</a>
+      </div>
+    </div>
+  </section>
+</Base>

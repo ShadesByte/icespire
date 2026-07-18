@@ -30,9 +30,23 @@ const dateStr = session.data.date.toLocaleDateString('en-US', {
   day: 'numeric',
   year: 'numeric',
 });
+
+// The session's travels, from the same data that draws the campaign map.
+const journey = (await getCollection('journey')).find(
+  (j) => j.data.session === session.data.sessionNumber
+);
+const locations = await getCollection('locations');
+const locationName = (slug: string) => locations.find((l) => l.id === slug)?.data.name ?? slug;
+
+const hasEncounters = session.data.encounters.length > 0;
+const hasJourney = journey && (journey.data.route.length > 0 || journey.data.events.length > 0);
+const hasAside = hasEncounters || hasJourney;
 ---
 
-<Base title={`Session ${session.data.sessionNumber}: ${session.data.title}`}>
+<Base
+  title={`Session ${session.data.sessionNumber}: ${session.data.title}`}
+  description={session.data.summary}
+>
   <a class="backlink" href={url('/sessions/')}>← All recaps</a>
   <div class="recap-kicker">
     Session {session.data.sessionNumber}
@@ -44,26 +58,58 @@ const dateStr = session.data.date.toLocaleDateString('en-US', {
       <p class="session-meta">At the table: {session.data.playersPresent.join(', ')}</p>
     )
   }
-  <div class="prose">
-    <Content />
+  <div class={`session-layout${hasAside ? '' : ' no-aside'}`}>
+    <div class="prose">
+      <Content />
+    </div>
+    {
+      hasAside && (
+        <aside class="session-aside">
+          {hasEncounters && (
+            <section class="aside-block">
+              <div class="kicker">Encountered this session</div>
+              <div class="aside-encounters">
+                {session.data.encounters.map((encounter) => (
+                  <CreatureCard
+                    name={encounter.name}
+                    image={url(encounter.image)}
+                    note={encounter.note}
+                    href={encounter.href ? url(encounter.href) : undefined}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+          {hasJourney && (
+            <section class="aside-block card journey-card">
+              <div class="kicker">The journey</div>
+              {journey.data.route.length > 0 && (
+                <p class="journey-route">
+                  {journey.data.route.map((slug, i) => (
+                    <>
+                      {i > 0 && <span class="route-sep" aria-hidden="true">→</span>}
+                      <a href={url(`/map/#${slug}`)}>{locationName(slug)}</a>
+                    </>
+                  ))}
+                </p>
+              )}
+              {journey.data.events.length > 0 && (
+                <ul class="journey-events">
+                  {journey.data.events.map((event) => (
+                    <li class={event.kind === 'battle' ? 'battle' : undefined}>
+                      <div class="ev-title">{event.title}</div>
+                      <div class="ev-place">at {locationName(event.at)}</div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <a class="journey-map-link" href={url('/map/')}>Trace it on the map →</a>
+            </section>
+          )}
+        </aside>
+      )
+    }
   </div>
-  {
-    session.data.encounters.length > 0 && (
-      <section class="encounter-section">
-        <div class="kicker">Encountered this session</div>
-        <div class="encounter-strip">
-          {session.data.encounters.map((encounter) => (
-            <CreatureCard
-              name={encounter.name}
-              image={url(encounter.image)}
-              note={encounter.note}
-              href={encounter.href ? url(encounter.href) : undefined}
-            />
-          ))}
-        </div>
-      </section>
-    )
-  }
   <nav class="session-pager" aria-label="Session navigation">
     {
       prev ? (

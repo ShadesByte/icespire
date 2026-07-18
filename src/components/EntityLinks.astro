@@ -72,6 +72,7 @@ for (const n of await getCollection('npcs')) {
     href: url(`/npcs/${n.id}/`),
     sub: [n.data.role, n.data.affiliation].filter(Boolean).join(' · '),
     note: n.data.note,
+    portrait: n.data.portrait ? url(n.data.portrait) : undefined,
     status: n.data.status,
     statusLabel: npcStatusLabels[n.data.status],
     aliases: nameVariants(n.data.name),
