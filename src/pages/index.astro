@@ -7,35 +7,149 @@ import { url } from '../utils/url';
 const sessions = (await getCollection('sessions', ({ data }) => !data.draft)).sort(
   (a, b) => b.data.sessionNumber - a.data.sessionNumber
 );
+const characters = (await getCollection('characters')).sort((a, b) =>
+  a.data.name.localeCompare(b.data.name)
+);
+const npcs = await getCollection('npcs');
+const locations = await getCollection('locations');
+const placesVisited = locations.filter((l) => l.data.status === 'visited').length;
+
+// The homepage shows the newest few recaps; the full archive lives on /sessions/.
+const recentSessions = sessions.slice(0, 3);
 const latest = sessions[0];
 ---
 
 <Base title="Home">
-  <div class="kicker">A campaign journal</div>
-  <h1 class="page-title">Dragon of Icespire Peak</h1>
-  <div class="prose">
-    <p>
-      Session recaps, a running summary of the story so far, the party roster, an NPC
-      directory, and a codex of factions and lore — kept by the party, for the party.
-    </p>
-  </div>
+  <section class="home-hero">
+    <div class="hero-body">
+      <div class="kicker">A campaign journal</div>
+      <h1 class="page-title">Dragon of <span class="gold">Icespire Peak</span></h1>
+      <div class="prose">
+        <p>
+          A white dragon has claimed Icespire Peak, and the frontier town of Phandalin
+          is hiring anyone reckless enough to take a job from its quest board. This is
+          the running chronicle of the party trying to stay ahead of the storm —
+          session recaps, the story so far, the roster, an NPC directory, and a codex
+          of factions and lore. Kept by the party, for the party.
+        </p>
+      </div>
+      <ul class="hero-stats">
+        <li><span class="stat-num">{sessions.length}</span> sessions logged</li>
+        <li><span class="stat-num">{characters.length}</span> adventurers</li>
+        <li><span class="stat-num">{npcs.length}</span> NPCs met</li>
+        <li><span class="stat-num">{placesVisited}</span> places visited</li>
+      </ul>
+      <div class="hero-actions">
+        {latest && <a class="btn-gold" href={url(`/sessions/${latest.id}/`)}>Read the latest recap</a>}
+        <a class="btn-ghost" href={url('/campaign/')}>The story so far</a>
+      </div>
+    </div>
+    <a class="hero-cover" href={url('/campaign/')} aria-label="Campaign summary">
+      <img
+        src={url('/images/campaign-cover.jpg')}
+        alt="Dragon of Icespire Peak cover art: two adventurers face a white dragon among snow-covered ruins"
+        width="900"
+        height="1171"
+        loading="eager"
+      />
+    </a>
+  </section>
+
+  <section class="home-section">
+    <div class="section-head">
+      <div>
+        <div class="kicker">The chronicle</div>
+        <h2 class="section-title">Latest recaps</h2>
+      </div>
+      <a class="section-link" href={url('/sessions/')}>All {sessions.length} recaps →</a>
+    </div>
+    {
+      recentSessions.length === 0 ? (
+        <p class="prose">No sessions recorded yet. The tale has yet to begin.</p>
+      ) : (
+        <div class="recap-feed">
+          {recentSessions.map((session) => (
+            <SessionRecapCard
+              sessionNumber={session.data.sessionNumber}
+              date={session.data.date}
+              title={session.data.title}
+              excerpt={session.data.summary}
+              href={url(`/sessions/${session.id}/`)}
+            />
+          ))}
+        </div>
+      )
+    }
+    {
+      sessions.length > recentSessions.length && (
+        <a class="archive-link" href={url('/sessions/')}>
+          Browse the full archive — {sessions.length} recaps and counting
+        </a>
+      )
+    }
+  </section>
 
   {
-    latest ? (
-      <section style="margin-top: var(--space-7);">
-        <div class="kicker">Latest recap</div>
-        <div class="recap-feed" style="margin-top: var(--space-3);">
-          <SessionRecapCard
-            sessionNumber={latest.data.sessionNumber}
-            date={latest.data.date}
-            title={latest.data.title}
-            excerpt={latest.data.summary}
-            href={url(`/sessions/${latest.id}/`)}
-          />
+    characters.length > 0 && (
+      <section class="home-section">
+        <div class="section-head">
+          <div>
+            <div class="kicker">The party</div>
+            <h2 class="section-title">Souls against the storm</h2>
+          </div>
+          <a class="section-link" href={url('/characters/')}>Full roster →</a>
+        </div>
+        <div class="party-strip">
+          {characters.map((character) => (
+            <a class="party-member" href={url(`/characters/${character.id}/`)}>
+              {character.data.portrait ? (
+                <img
+                  class="party-portrait"
+                  src={url(character.data.portrait)}
+                  alt={`Portrait of ${character.data.name}`}
+                  loading="lazy"
+                />
+              ) : (
+                <span class="party-portrait placeholder">?</span>
+              )}
+              <span class="party-name">{character.data.name.split(' ')[0]}</span>
+              <span class="party-class">{character.data.class}</span>
+            </a>
+          ))}
         </div>
       </section>
-    ) : (
-      <p class="prose">No sessions recorded yet. The tale has yet to begin.</p>
     )
   }
+
+  <section class="home-section">
+    <div class="section-head">
+      <div>
+        <div class="kicker">Reference</div>
+        <h2 class="section-title">Explore the chronicle</h2>
+      </div>
+    </div>
+    <div class="explore-grid">
+      <a class="card explore-card" href={url('/map/')}>
+        <h3>Campaign Map</h3>
+        <p>
+          The Phandalin region, hex by hex — every route the party has walked, with
+          pins for battles and discoveries along the way.
+        </p>
+      </a>
+      <a class="card explore-card" href={url('/npcs/')}>
+        <h3>NPC Directory</h3>
+        <p>
+          Allies, threats, and unresolved question marks — everyone the party has met,
+          and where they stand.
+        </p>
+      </a>
+      <a class="card explore-card" href={url('/codex/')}>
+        <h3>Codex</h3>
+        <p>
+          Factions, lore, and the deeper history behind the jobs — from Gnomengarde to
+          the Zhentarim.
+        </p>
+      </a>
+    </div>
+  </section>
 </Base>
