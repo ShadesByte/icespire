@@ -2246,6 +2246,79 @@ body {
   line-height: var(--leading-normal);
 }
 
+/* ---------- Markdown doc page with contents rail ---------- */
+
+.doc-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: var(--space-8);
+  align-items: start;
+}
+
+.doc-layout.no-aside {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 900px) {
+  .doc-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.doc-toc {
+  position: sticky;
+  top: var(--space-5);
+  border-left: 1px solid var(--border-subtle);
+  padding-left: var(--space-4);
+}
+
+/* The rail is in-page navigation for a long read; on narrow screens the
+   prose already flows top-to-bottom, so it would just be clutter. */
+@media (max-width: 900px) {
+  .doc-toc {
+    display: none;
+  }
+}
+
+.doc-toc-title {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--accent-gold);
+  margin-bottom: var(--space-3);
+}
+
+.doc-toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.doc-toc li.sub {
+  padding-left: var(--space-3);
+}
+
+.doc-toc a {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.doc-toc li:not(.sub) > a {
+  color: var(--text-secondary);
+}
+
+.doc-toc a:hover {
+  color: var(--link-hover);
+}
+
 /* ---------- 404 page ---------- */
 
 .notfound {

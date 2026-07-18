@@ -4,7 +4,6 @@ role: 'White Dragon'
 affiliation: 'Unknown'
 status: hostile
 note: 'The reason for every warning the party has delivered. Not yet seen in person.'
-portrait: '/images/creatures/young-white-dragon.webp'
 ---
 
 The threat hanging over the whole region. The party has never laid eyes on it
