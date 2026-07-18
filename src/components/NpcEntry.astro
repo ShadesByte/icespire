@@ -35,11 +35,13 @@ const monogram = name
     )
   }
   <div class="npc-entry-body">
-    <div class="npc-name">
-      {href ? <a href={href}>{name}</a> : name}
+    <div class="npc-entry-head">
+      <div class="npc-name">
+        {href ? <a href={href}>{name}</a> : name}
+      </div>
+      <StatusPill status={status} />
     </div>
     {roleLine && <div class="npc-role">{roleLine}</div>}
     {note && <div class="npc-note">{note}</div>}
   </div>
-  <StatusPill status={status} />
 </li>

@@ -1028,6 +1028,22 @@ body {
   min-width: 0;
 }
 
+/* Name and status pill share the top line; the pill drops below the name
+   only when they genuinely can't fit side by side (long name + wide pill
+   on a narrow screen). */
+.npc-entry-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+}
+
+.npc-entry-head .npc-name {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .npc-thumb {
   width: 48px;
   height: 48px;
