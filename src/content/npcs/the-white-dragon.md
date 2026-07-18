@@ -1,7 +1,7 @@
 ---
 name: 'The White Dragon'
 role: 'White Dragon'
-affiliation: 'Icespire Peak'
+affiliation: 'Unknown'
 status: hostile
 note: 'The reason for every warning the party has delivered. Not yet seen in person.'
 ---

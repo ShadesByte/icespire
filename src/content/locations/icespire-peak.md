@@ -3,7 +3,7 @@ name: 'Icespire Peak'
 x: 706
 y: 492
 kind: lair
-status: rumored
+status: unknown
 danger: true
 labelPlacement: bottom
 summary: 'The mountain the region is bracing against. Somewhere up there: a white dragon.'
