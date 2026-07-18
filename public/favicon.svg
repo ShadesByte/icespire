@@ -1,6 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Icespire mark: a gold peak with a snow cap, on the site's night slate. -->
+  <!-- Icespire mark: a jagged snow-capped mountain range on the site's
+       night slate, with a gold moon behind. The multi-peak silhouette
+       reads clearly as mountains at favicon size. -->
   <rect width="64" height="64" rx="14" fill="#141a20"/>
-  <path d="M32 8 L54 56 L10 56 Z" fill="#c9a35c"/>
-  <path d="M32 8 L41 27.5 L36.5 24 L32 30 L27.5 24 L23 27.5 Z" fill="#eef2f4"/>
+  <circle cx="43" cy="22" r="9" fill="#c9a35c"/>
+  <!-- Range: left foot up over a lower peak, down to a notch, up over the
+       tall peak, down to the right foot. -->
+  <path d="M6 52 L23 24 L34 40 L45 16 L58 52 Z" fill="#5e7182"/>
+  <!-- Snow caps sitting on each peak. -->
+  <path d="M17.5 33.7 L23 24 L28.7 33.2 L25.5 31 L21.5 34 L19.5 32 Z" fill="#eef2f4"/>
+  <path d="M39.5 25 L45 16 L50.7 25.6 L47.5 23 L43.5 26.5 L41.5 24 Z" fill="#eef2f4"/>
 </svg>
