@@ -67,7 +67,8 @@ Sage landed the kills). The windmill mostly survived.
 ### Session 5 — Adabra, Orcs, and the Temple of Abbathor (7/14/26)
 
 Post-manticore, Rut's Goodberry and Barnaby's Lay on Hands stabilized the
-party; Rut kept a manticore tail-spike as an improvised dagger. **Adabra
+party; Rut ripped a tail-spike from a manticore corpse and kept it — why,
+he hasn't said. **Adabra
 Gwynn** refused to relocate (she can only brew the town's healing potions at
 her windmill), gave a free healing potion (Dax tossed it to a bleeding Thom),
 noted rising orc activity, and sent a note back to Harbin. En route to the

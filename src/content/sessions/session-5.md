@@ -18,7 +18,7 @@ The session picked up in the immediate aftermath of the manticore fight at the
 Umbrage Hill windmill, with most of the party badly wounded. Rut spent his
 last spell slot on Goodberry and Barnaby used Lay on Hands to get everyone
 back on their feet. Rut also ripped a tail spike from one of the manticore
-corpses to keep as an improvised dagger.
+corpses and kept it, offering no explanation.
 
 The woman the party rescued introduced herself as **Adabra Gwynn**, the midwife
 and apothecary who brews the healing potions supplied to Phandalin. The party
