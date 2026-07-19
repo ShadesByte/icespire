@@ -2,7 +2,7 @@
 name: 'Harbin Wester'
 role: 'Townmaster'
 affiliation: 'Phandalin'
-status: ally
+status: neutral
 note: 'Nervous, portly, dragon-paranoid. Pays promptly, checks the sky before opening the door.'
 firstAppearance: 4
 ---

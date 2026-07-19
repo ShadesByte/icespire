@@ -58,8 +58,18 @@ const npcs = defineCollection({
     role: z.string().optional(), // e.g. "Innkeeper", "White Dragon"
     affiliation: z.string().optional(), // shown next to role: place, group, or faction name
     faction: z.string().optional(), // slug of a faction entry, for linking
-    // Disposition toward the party (drives the status pill):
-    // neutral renders as "At Large", unresolved as "Unresolved Thread".
+    // Disposition toward the party (drives the status pill AND the colour of
+    // the figure's line on the relationship graph). Keep the bar for "ally"
+    // high or the graph floods green and stops meaning anything:
+    //   ally       — has given the party real, material aid, or is a committed
+    //                 friend/asset who would take their side. Not merely polite.
+    //   hostile    — actively opposed to the party. Renders in ember.
+    //   unresolved — a relationship the story hasn't settled; owed a reckoning
+    //                either way. Renders as "Unresolved Thread".
+    //   neutral    — met and non-hostile, but not committed: townsfolk,
+    //                patrons, one-off contacts, the newly-met, wildcards.
+    //                Renders as "At Large". This is the default — an NPC earns
+    //                "ally", they don't start there.
     status: z.enum(['ally', 'hostile', 'unresolved', 'neutral']).default('neutral'),
     // Short directory blurb ("Means well. Is in over his head.")
     note: z.string().optional(),
