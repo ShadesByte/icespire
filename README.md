@@ -16,6 +16,7 @@ to `main`).
 | Map | `/map/` | `src/content/locations/` + `src/content/journey/` |
 | Roster | `/characters/` | `src/content/characters/` |
 | NPCs | `/npcs/` | `src/content/npcs/` |
+| Relations | `/graph/` | derived from `src/content/npcs/` + `factions/` + `characters/` |
 | Codex | `/codex/` | factions (`src/content/factions/`) + lore (`src/content/lore/`) |
 
 ## Adding content
@@ -81,6 +82,29 @@ both the region marker and the local map). The full status ladder:
 
 Frontmatter is validated at build time (`src/content.config.ts`); a bad field
 fails the build with a pointed error.
+
+### The relationship graph
+
+`/graph/` ("The Political Web") renders an inline SVG force-of-allegiance
+diagram — the party at the centre, factions on an inner ring, and every NPC on
+an outer ring clustered beside the faction they answer to
+(`src/pages/graph/index.astro`). Nothing new to author: it is generated from
+the existing `npcs`, `factions`, and `characters` collections at build time.
+
+- **Lines carry disposition.** A solid line's colour is a figure's stance
+  toward the party — ally (green), hostile (ember), unresolved thread (gold),
+  or at-large/neutral (frost) — reusing the NPC `status` values and the same
+  status tokens as the pills. A faction's free-text `alignment` collapses onto
+  the same four buckets.
+- **Dashed lines are membership** — an NPC's `faction` slug draws a quiet grey
+  tie to that faction's hub.
+- Choosing any node lights up its ties and opens a detail panel (with links to
+  the full NPC/faction/roster pages); the graph pans and zooms like the maps
+  (it reuses `src/scripts/map-viewer.ts`). A plain "By allegiance" roll-call
+  under the graph is the no-tiny-targets path on a phone.
+
+To grow the web, just add NPCs and factions as normal — set an NPC's `faction`
+to cluster it, and its `status` to colour its line.
 
 ### Design elements inside recaps
 
