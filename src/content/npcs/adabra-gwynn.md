@@ -2,7 +2,7 @@
 name: 'Adabra Gwynn'
 role: 'Midwife & Apothecary'
 affiliation: 'Umbrage Hill'
-status: ally
+status: neutral
 note: 'Brews Phandalin''s healing potions. Will not leave her windmill. Cooks a mean dinner.'
 firstAppearance: 4
 ---

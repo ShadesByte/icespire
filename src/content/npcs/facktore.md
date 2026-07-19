@@ -2,7 +2,7 @@
 name: 'Facktoré'
 role: 'Unhinged Tinkerer'
 affiliation: 'Gnomengarde (formerly)'
-status: neutral
+status: at-large
 note: 'Shot Thom with a crossbow ballista. Freed by Rut. Screeched. Ran. Still out there.'
 firstAppearance: 2
 ---

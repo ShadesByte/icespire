@@ -32,6 +32,7 @@
 --status-ally:#5c8a6b;--status-ally-wash:rgba(92,138,107,.14);
 --status-hostile:var(--ember-500);--status-hostile-wash:var(--accent-ember-wash);
 --status-unresolved:var(--gold-500);--status-unresolved-wash:var(--accent-gold-wash);
+--status-at-large:#b083c9;--status-at-large-wash:rgba(176,131,201,.14);
 --status-neutral:var(--frost-400);--status-neutral-wash:rgba(139,156,170,.14);
 }
 [data-theme="light"]{
@@ -62,5 +63,6 @@
 --status-ally:#3c7350;--status-ally-wash:rgba(60,115,80,.12);
 --status-hostile:#8f2f22;--status-hostile-wash:rgba(143,47,34,.10);
 --status-unresolved:#8f6a2c;--status-unresolved-wash:rgba(143,106,44,.10);
+--status-at-large:#71468f;--status-at-large-wash:rgba(113,70,143,.10);
 --status-neutral:#5e7182;--status-neutral-wash:rgba(94,113,130,.12);
 }
