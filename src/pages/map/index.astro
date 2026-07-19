@@ -211,6 +211,58 @@ const journeySteps = journey
       atName: locBySlug.get(ev.at)?.data.name ?? ev.at,
     })),
   }));
+
+// ---- Time-scrubber. The map holds the whole campaign at once; the scrubber
+// winds it back and lets a reader watch the journey reveal itself session by
+// session — trail, tags, event pins and markers each keyed to the session
+// they first appear.
+const sessionTitle = new Map(sessions.map((s) => [s.data.sessionNumber, s.data.title]));
+
+// Earliest session each location enters the story, via a route stop or an
+// event. Places only ever heard about — never travelled or fought at — have no
+// journey session and stay on the map throughout, as ambient world context.
+const revealBySlug = new Map<string, number>();
+function markReveal(slug: string, session: number) {
+  const cur = revealBySlug.get(slug);
+  if (cur === undefined || session < cur) revealBySlug.set(slug, session);
+}
+for (const leg of journey) {
+  for (const slug of leg.data.route) markReveal(slug, leg.data.session);
+  for (const ev of leg.data.events) markReveal(ev.at, leg.data.session);
+}
+
+// The ordered rungs of the scrubber: every session that moved the party or
+// recorded an event. Each rung carries where the party stands at that point
+// (the last stop travelled up to and including it) so the "here" beacon walks
+// the trail as you scrub. A session with events but no travel (session 3)
+// leaves the beacon where the last leg left it.
+interface ScrubRung {
+  session: number;
+  title?: string;
+  route: string;
+  hereX?: number;
+  hereY?: number;
+}
+const scrubSessions: ScrubRung[] = [];
+let runningHere: { x: number; y: number } | undefined;
+for (const leg of journey) {
+  if (leg.data.route.length > 0) {
+    const last = requireLoc(
+      leg.data.route[leg.data.route.length - 1],
+      `journey session ${leg.data.session} route`
+    );
+    runningHere = { x: last.data.x, y: last.data.y };
+  }
+  if (leg.data.route.length > 0 || leg.data.events.length > 0) {
+    scrubSessions.push({
+      session: leg.data.session,
+      title: sessionTitle.get(leg.data.session),
+      route: leg.data.route.map((slug) => locBySlug.get(slug)?.data.name ?? slug).join(' → '),
+      hereX: runningHere?.x,
+      hereY: runningHere?.y,
+    });
+  }
+}
 ---
 
 <Base title="Campaign Map" description="The Phandalin region: where the party has gone and what happened there.">
@@ -219,6 +271,27 @@ const journeySteps = journey
 
   <div class="map-layout">
     <div class="map-main">
+    {scrubSessions.length > 1 && (
+      <div class="map-scrubber" id="map-scrubber">
+        <button type="button" class="scrub-play" id="scrub-play" aria-label="Play the journey" aria-pressed="false">
+          <span class="scrub-play-icon" aria-hidden="true">▶</span>
+        </button>
+        <div class="scrub-body">
+          <input
+            type="range"
+            class="scrub-range"
+            id="scrub-range"
+            min="0"
+            max={scrubSessions.length - 1}
+            value={scrubSessions.length - 1}
+            step="1"
+            aria-label="Replay the campaign session by session"
+          />
+          <div class="scrub-readout" id="scrub-readout" aria-live="polite"></div>
+        </div>
+      </div>
+      <script type="application/json" id="scrub-data" set:html={JSON.stringify(scrubSessions)} />
+    )}
     <div class="map-frame" id="map-frame">
       <svg
         class="map-svg"
@@ -231,7 +304,11 @@ const journeySteps = journey
 
         <g class="map-route" aria-hidden="true">
           {traversals.map((t) => (
-            <g class:list={['map-route-leg', { latest: t.latest }]} style={`opacity:${t.opacity.toFixed(2)}`}>
+            <g
+              class:list={['map-route-leg', { latest: t.latest }]}
+              style={`opacity:${t.opacity.toFixed(2)}`}
+              data-session={t.session}
+            >
               <path class="leg" d={t.d} />
               <path
                 class="map-route-chevron map-cscale"
@@ -243,7 +320,11 @@ const journeySteps = journey
         </g>
         <g class="map-route-tags" aria-hidden="true">
           {traversals.map((t) => (
-            <text class="map-cscale" transform={`translate(${t.tagX.toFixed(1)} ${t.tagY.toFixed(1)})`}>
+            <text
+              class="map-cscale"
+              transform={`translate(${t.tagX.toFixed(1)} ${t.tagY.toFixed(1)})`}
+              data-session={t.session}
+            >
               S{t.session}
             </text>
           ))}
@@ -252,12 +333,14 @@ const journeySteps = journey
         {
           currentLocation && (
             <g
-              class="map-here map-cscale"
+              id="map-here-anchor"
               transform={`translate(${currentLocation.data.x} ${currentLocation.data.y})`}
               aria-hidden="true"
             >
-              <circle class="here-pulse" r="13" />
-              <circle class="here-ring" r="11" />
+              <g class="map-here map-cscale">
+                <circle class="here-pulse" r="13" />
+                <circle class="here-ring" r="11" />
+              </g>
             </g>
           )
         }
@@ -273,10 +356,12 @@ const journeySteps = journey
                     y1={pin.tickY1}
                     x2={pin.tickX2}
                     y2={pin.tickY2}
+                    data-session={pin.session}
                   />
                   <g
                     class:list={['map-pin', 'map-cscale', { battle: pin.kind === 'battle' }]}
                     transform={`translate(${pin.x.toFixed(1)} ${pin.y.toFixed(1)})`}
+                    data-session={pin.session}
                     data-open={loc.id}
                     data-tip-title={pin.title}
                     data-tip-sub={`Session ${pin.session}`}
@@ -310,6 +395,7 @@ const journeySteps = journey
                 transform={`translate(${loc.data.x} ${loc.data.y})`}
                 data-open={loc.id}
                 data-slug={loc.id}
+                data-reveal={revealBySlug.get(loc.id)}
                 data-tip-title={loc.data.name}
                 data-tip-sub={`${kindLabels[loc.data.kind]} · ${statusLabels[loc.data.status]}`}
                 tabindex="0"
@@ -362,7 +448,7 @@ const journeySteps = journey
       <div class="kicker">The journey so far</div>
       <ol class="mj-list">
         {journeySteps.map((step) => (
-          <li class="mj-leg">
+          <li class="mj-leg" data-session={step.session}>
             <div class="mj-leg-head">
               {step.sessionId ? (
                 <a href={url(`/sessions/${step.sessionId}/`)}>Session {step.session}</a>
@@ -610,4 +696,123 @@ const journeySteps = journey
 
   // Deep link: /map/#phandalin opens that location.
   if (location.hash.length > 1) openLocation(decodeURIComponent(location.hash.slice(1)));
+
+  // ---- Time-scrubber ----------------------------------------------------------
+  // Wind the campaign back and forth: at each rung, the trail, tags, event pins
+  // and markers that belong to a later session fall away, and the "here" beacon
+  // walks back down the trail. The rightmost rung is the full, present-day map.
+  interface ScrubRung {
+    session: number;
+    title?: string;
+    route: string;
+    hereX?: number;
+    hereY?: number;
+  }
+  const scrubDataEl = document.getElementById('scrub-data');
+  const range = document.getElementById('scrub-range') as HTMLInputElement | null;
+  const readout = document.getElementById('scrub-readout');
+  const playBtn = document.getElementById('scrub-play');
+  const hereAnchor = document.getElementById('map-here-anchor');
+
+  if (scrubDataEl && range && readout && playBtn) {
+    const rungs: ScrubRung[] = JSON.parse(scrubDataEl.textContent || '[]');
+    const legs = [...svg.querySelectorAll<SVGGElement>('.map-route-leg[data-session]')];
+    const tags = [...svg.querySelectorAll<SVGTextElement>('.map-route-tags text[data-session]')];
+    const pins = [...svg.querySelectorAll<SVGElement>('.map-pin[data-session], .map-pin-tick[data-session]')];
+    const markers = [...svg.querySelectorAll<SVGGElement>('.map-marker[data-reveal]')];
+    const journeyLegs = [...document.querySelectorAll<HTMLElement>('.mj-leg[data-session]')];
+    const lastIndex = rungs.length - 1;
+
+    function applyScrub(index: number) {
+      const rung = rungs[index];
+      if (!rung) return;
+      const current = rung.session;
+      const isPresent = index === lastIndex;
+
+      // Fade away anything that belongs to a session still ahead of this rung.
+      const hideAfter = (els: Element[]) => {
+        for (const el of els) {
+          const s = Number(el.getAttribute('data-session') ?? el.getAttribute('data-reveal'));
+          el.classList.toggle('scrub-off', Number.isFinite(s) && s > current);
+        }
+      };
+      hideAfter(legs);
+      hideAfter(tags);
+      hideAfter(pins);
+      // Markers without a reveal session (ambient, only-rumored places) carry no
+      // data-reveal number and are simply never hidden.
+      hideAfter(markers);
+
+      // The newest visible leg reads boldest, so the frontier of the journey
+      // stands out no matter where the scrubber rests.
+      let frontier = -Infinity;
+      for (const leg of legs) {
+        const s = Number(leg.getAttribute('data-session'));
+        if (s <= current && s > frontier) frontier = s;
+      }
+      for (const leg of legs) {
+        leg.classList.toggle('latest', Number(leg.getAttribute('data-session')) === frontier);
+      }
+
+      // Walk the "here" beacon to where the party stands at this rung.
+      if (hereAnchor && rung.hereX != null && rung.hereY != null) {
+        hereAnchor.setAttribute('transform', `translate(${rung.hereX} ${rung.hereY})`);
+      }
+
+      // Sync the read-out list highlight.
+      for (const el of journeyLegs) {
+        el.classList.toggle('is-current', Number(el.dataset.session) === current);
+      }
+
+      readout!.innerHTML = '';
+      const s = document.createElement('span');
+      s.className = 'scrub-session';
+      s.textContent = `Session ${current}`;
+      const sub = document.createElement('span');
+      sub.className = 'scrub-sub';
+      sub.textContent = isPresent
+        ? rung.title ?? rung.route ?? 'The present day'
+        : rung.title ?? rung.route ?? '';
+      readout!.append(s, sub);
+      svg.classList.toggle('is-scrubbing', !isPresent);
+    }
+
+    range.addEventListener('input', () => {
+      stopPlay();
+      applyScrub(Number(range.value));
+    });
+
+    // ---- Replay: step through the rungs on a timer, revealing the journey.
+    let playTimer = 0;
+    let playing = false;
+    function stopPlay() {
+      if (!playing) return;
+      playing = false;
+      window.clearInterval(playTimer);
+      playBtn!.classList.remove('playing');
+      playBtn!.setAttribute('aria-pressed', 'false');
+      playBtn!.setAttribute('aria-label', 'Play the journey');
+    }
+    function startPlay() {
+      playing = true;
+      playBtn!.classList.add('playing');
+      playBtn!.setAttribute('aria-pressed', 'true');
+      playBtn!.setAttribute('aria-label', 'Pause the journey');
+      // Replaying from the end restarts at the beginning.
+      if (Number(range!.value) >= lastIndex) {
+        range!.value = '0';
+        applyScrub(0);
+      }
+      playTimer = window.setInterval(() => {
+        const next = Number(range!.value) + 1;
+        range!.value = String(next);
+        applyScrub(next);
+        if (next >= lastIndex) stopPlay();
+      }, 1300);
+    }
+    playBtn.addEventListener('click', () => (playing ? stopPlay() : startPlay()));
+
+    // Start fully revealed — the present-day map, identical to the static view.
+    applyScrub(lastIndex);
+  }
 </script>
