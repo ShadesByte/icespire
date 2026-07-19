@@ -31,9 +31,19 @@ replace it with the real campaign as you go.
   `status` (active/retired/dead/missing), `tagline` (one-line bio on the card),
   `traits` (short pill labels), optional `portrait`.
 - **NPCs**: `name`, `role`, `affiliation` (shown as "Role · Affiliation"),
-  `status` — one of `ally`, `hostile`, `unresolved` ("Unresolved Thread"), or
-  `neutral` ("At Large") — plus `note` (directory blurb), optional `faction`
-  (a faction file's name, for linking) and `firstAppearance`.
+  `status`, plus `note` (directory blurb), optional `faction` (a faction
+  file's name, for linking) and `firstAppearance`. `status` is the NPC's
+  disposition toward the party and drives both the status pill and the colour
+  of their line on the relationship graph — so keep the bar for `ally` high:
+  - `ally` — has given the party real, material aid, or is a committed
+    friend/asset who'd take their side. **Not merely polite** — an NPC *earns*
+    ally, they don't start there.
+  - `hostile` — actively opposed (renders in ember, "Hostile").
+  - `unresolved` — a relationship the story hasn't settled, owed a reckoning
+    either way (renders as "Unresolved Thread").
+  - `neutral` — met and non-hostile but uncommitted: townsfolk, patrons,
+    one-off contacts, the newly-met, wildcards. Renders as "At Large". This is
+    the default.
 - **Factions**: `name`, `type`, `status`, `alignment`, `summary` (codex panel text).
 - **Lore**: `title`, `category` (places/history/items/…), `summary`.
 - **Locations** (`src/content/locations/`): places on the campaign map. `name`,

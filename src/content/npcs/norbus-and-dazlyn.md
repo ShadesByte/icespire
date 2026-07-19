@@ -2,7 +2,7 @@
 name: 'Norbus Ithermel & Dazlyn Grayshard'
 role: 'Dwarf Prospectors'
 affiliation: 'Dwarven Excavation'
-status: ally
+status: neutral
 note: 'Miners, not fighters. Digging into a temple of the god of greed. What could go wrong?'
 firstAppearance: 5
 ---

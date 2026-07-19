@@ -21,23 +21,48 @@ const fullTitle = `${title} · Dragon of Icespire Peak`;
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 const ogImageUrl = new URL(url(ogImage), Astro.site);
 
-const navItems = [
-  { href: '/', label: 'Home', match: [] },
-  { href: '/sessions/', label: 'Recaps', match: ['/sessions/'] },
-  { href: '/timeline/', label: 'Timeline', match: ['/timeline/'] },
-  { href: '/campaign/', label: 'Campaign', match: ['/campaign/'] },
-  { href: '/map/', label: 'Map', match: ['/map/'] },
-  { href: '/characters/', label: 'Roster', match: ['/characters/'] },
-  { href: '/npcs/', label: 'NPCs', match: ['/npcs/'] },
-  { href: '/graph/', label: 'Relations', match: ['/graph/'] },
-  { href: '/codex/', label: 'Codex', match: ['/codex/', '/factions/', '/lore/'] },
+// The nav is grouped so the top bar stays short: Home stands alone, and the
+// rest fall under "The Story" (the campaign as it unfolds) or "The World"
+// (the reference atlas of people, places, and powers).
+interface NavItem {
+  href: string;
+  label: string;
+  match: string[];
+}
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+const homeItem: NavItem = { href: '/', label: 'Home', match: [] };
+const navGroups: NavGroup[] = [
+  {
+    label: 'The Story',
+    items: [
+      { href: '/sessions/', label: 'Recaps', match: ['/sessions/'] },
+      { href: '/timeline/', label: 'Timeline', match: ['/timeline/'] },
+      { href: '/campaign/', label: 'Campaign', match: ['/campaign/'] },
+    ],
+  },
+  {
+    label: 'The World',
+    items: [
+      { href: '/map/', label: 'Map', match: ['/map/'] },
+      { href: '/characters/', label: 'Roster', match: ['/characters/'] },
+      { href: '/npcs/', label: 'NPCs', match: ['/npcs/'] },
+      { href: '/graph/', label: 'Relations', match: ['/graph/'] },
+      { href: '/codex/', label: 'Codex', match: ['/codex/', '/factions/', '/lore/'] },
+    ],
+  },
 ];
+// Flat list for the footer, where there's room to show every page at once.
+const allItems: NavItem[] = [homeItem, ...navGroups.flatMap((g) => g.items)];
 
 const currentPath = Astro.url.pathname;
-const isActive = (item: (typeof navItems)[number]) =>
+const isActive = (item: NavItem) =>
   item.href === '/'
     ? currentPath.replace(/\/$/, '') === url('/').replace(/\/$/, '')
     : item.match.some((prefix) => currentPath.startsWith(url(prefix)));
+const groupActive = (group: NavGroup) => group.items.some(isActive);
 ---
 
 <html lang="en">
@@ -73,12 +98,35 @@ const isActive = (item: (typeof navItems)[number]) =>
   <body>
     <header class="site-header">
       <a class="site-title" href={url('/')}>Dragon of <span class="gold">Icespire Peak</span></a>
-      <nav class="site-nav">
+      <nav class="site-nav" aria-label="Primary">
+        <a href={url(homeItem.href)} aria-current={isActive(homeItem) ? 'page' : undefined}>
+          {homeItem.label}
+        </a>
         {
-          navItems.map((item) => (
-            <a href={url(item.href)} aria-current={isActive(item) ? 'page' : undefined}>
-              {item.label}
-            </a>
+          navGroups.map((group) => (
+            <div class="nav-group" data-nav-group>
+              <button
+                type="button"
+                class="nav-trigger"
+                aria-haspopup="true"
+                aria-expanded="false"
+                aria-current={groupActive(group) ? 'page' : undefined}
+              >
+                {group.label}
+                <span class="nav-caret" aria-hidden="true">▾</span>
+              </button>
+              <div class="nav-menu" role="menu">
+                {group.items.map((item) => (
+                  <a
+                    href={url(item.href)}
+                    role="menuitem"
+                    aria-current={isActive(item) ? 'page' : undefined}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+            </div>
           ))
         }
       </nav>
@@ -89,7 +137,7 @@ const isActive = (item: (typeof navItems)[number]) =>
     </main>
     <footer class="site-footer">
       <nav class="footer-nav">
-        {navItems.map((item) => <a href={url(item.href)}>{item.label}</a>)}
+        {allItems.map((item) => <a href={url(item.href)}>{item.label}</a>)}
       </nav>
       A chronicle kept by the party. Updated between sessions.
     </footer>
@@ -111,6 +159,35 @@ const isActive = (item: (typeof navItems)[number]) =>
           }
           localStorage.setItem('icespire-theme', toLight ? 'light' : 'dark');
           button.textContent = label();
+        });
+      })();
+    </script>
+    <script is:inline>
+      // Grouped nav: each "The Story" / "The World" trigger toggles its menu.
+      // Click-based (not hover) so it behaves the same for touch, mouse, and
+      // keyboard; a click anywhere else, or Escape, closes any open menu.
+      (() => {
+        const groups = Array.from(document.querySelectorAll('[data-nav-group]'));
+        const closeAll = (except) => {
+          for (const group of groups) {
+            if (group === except) continue;
+            group.classList.remove('open');
+            group.querySelector('.nav-trigger')?.setAttribute('aria-expanded', 'false');
+          }
+        };
+        for (const group of groups) {
+          const trigger = group.querySelector('.nav-trigger');
+          if (!trigger) continue;
+          trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const open = group.classList.toggle('open');
+            trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+            closeAll(group);
+          });
+        }
+        document.addEventListener('click', () => closeAll(null));
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') closeAll(null);
         });
       })();
     </script>
