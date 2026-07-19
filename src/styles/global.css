@@ -50,12 +50,14 @@ body {
 .site-nav {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: var(--space-5);
 }
 
-.site-nav a {
+.site-nav > a {
   font-family: var(--font-display);
   font-size: var(--text-xs);
+  line-height: 1;
   letter-spacing: var(--tracking-wider);
   text-transform: uppercase;
   text-decoration: none;
@@ -96,6 +98,8 @@ body {
  * plain nav links; its menu drops beneath on click. */
 .nav-group {
   position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
 .nav-trigger {
@@ -104,6 +108,7 @@ body {
   gap: 5px;
   font-family: var(--font-display);
   font-size: var(--text-xs);
+  line-height: 1;
   letter-spacing: var(--tracking-wider);
   text-transform: uppercase;
   color: var(--text-secondary);
@@ -1319,6 +1324,12 @@ body {
   color: var(--status-unresolved);
   background: var(--status-unresolved-wash);
   border-color: color-mix(in srgb, var(--status-unresolved) 20%, transparent);
+}
+
+.status-pill.at-large {
+  color: var(--status-at-large);
+  background: var(--status-at-large-wash);
+  border-color: color-mix(in srgb, var(--status-at-large) 20%, transparent);
 }
 
 .status-pill.neutral {
@@ -2908,6 +2919,10 @@ body {
 .g-edge.unresolved {
   color: var(--status-unresolved);
 }
+.g-node.at-large,
+.g-edge.at-large {
+  color: var(--status-at-large);
+}
 .g-node.neutral,
 .g-edge.neutral {
   color: var(--status-neutral);
@@ -3179,6 +3194,7 @@ body {
 .glg-line.ally { border-top-color: var(--status-ally); }
 .glg-line.hostile { border-top-color: var(--status-hostile); }
 .glg-line.unresolved { border-top-color: var(--status-unresolved); }
+.glg-line.at-large { border-top-color: var(--status-at-large); }
 .glg-line.neutral { border-top-color: var(--status-neutral); }
 .glg-line.member {
   border-top-style: dashed;
@@ -3322,6 +3338,7 @@ body {
 .rollcall-tag.ally { color: var(--status-ally); }
 .rollcall-tag.hostile { color: var(--status-hostile); }
 .rollcall-tag.unresolved { color: var(--status-unresolved); }
+.rollcall-tag.at-large { color: var(--status-at-large); }
 .rollcall-tag.neutral { color: var(--status-neutral); }
 
 .rollcall-list {

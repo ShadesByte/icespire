@@ -1,5 +1,5 @@
 ---
-type Status = 'ally' | 'hostile' | 'unresolved' | 'neutral';
+type Status = 'ally' | 'hostile' | 'unresolved' | 'at-large' | 'neutral';
 
 interface Props {
   status?: Status;
@@ -10,7 +10,8 @@ const defaultLabels: Record<Status, string> = {
   ally: 'Ally',
   hostile: 'Hostile',
   unresolved: 'Unresolved Thread',
-  neutral: 'At Large',
+  'at-large': 'At Large',
+  neutral: 'Neutral',
 };
 
 const { status = 'neutral', label } = Astro.props;

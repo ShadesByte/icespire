@@ -66,11 +66,15 @@ const npcs = defineCollection({
     //   hostile    — actively opposed to the party. Renders in ember.
     //   unresolved — a relationship the story hasn't settled; owed a reckoning
     //                either way. Renders as "Unresolved Thread".
+    //   at-large   — a wildcard the party has lost track of: escaped, fled, or
+    //                otherwise unaccounted for and still out there. Renders as
+    //                "At Large". Reserve it for the genuinely loose — most
+    //                met-and-parted NPCs are "neutral", not "at-large".
     //   neutral    — met and non-hostile, but not committed: townsfolk,
-    //                patrons, one-off contacts, the newly-met, wildcards.
-    //                Renders as "At Large". This is the default — an NPC earns
-    //                "ally", they don't start there.
-    status: z.enum(['ally', 'hostile', 'unresolved', 'neutral']).default('neutral'),
+    //                patrons, one-off contacts, the newly-met. Renders as
+    //                "Neutral". This is the default — an NPC earns "ally", they
+    //                don't start there.
+    status: z.enum(['ally', 'hostile', 'unresolved', 'at-large', 'neutral']).default('neutral'),
     // Short directory blurb ("Means well. Is in over his head.")
     note: z.string().optional(),
     firstAppearance: z.number().int().optional(), // session number

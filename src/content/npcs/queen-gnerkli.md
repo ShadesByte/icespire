@@ -3,7 +3,7 @@ name: 'Queen Gnerkli'
 role: 'Queen of Gnomengarde'
 affiliation: 'Gnomengarde'
 faction: 'gnomengarde'
-status: neutral
+status: ally
 note: 'Co-ruler of Gnomengarde. Freed by the King once his mimic panic was resolved.'
 firstAppearance: 3
 ---
