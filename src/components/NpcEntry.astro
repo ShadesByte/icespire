@@ -8,32 +8,13 @@ interface Props {
   status?: 'ally' | 'hostile' | 'unresolved' | 'neutral';
   note?: string;
   href?: string;
-  // Already-prefixed image URL (see utils/url). Entries without art get a
-  // monogram chip instead, so the directory keeps an even rhythm.
-  portrait?: string;
 }
 
-const { name, role, affiliation, status = 'neutral', note, href, portrait } = Astro.props;
+const { name, role, affiliation, status = 'neutral', note, href } = Astro.props;
 const roleLine = [role, affiliation].filter(Boolean).join(' · ');
-const monogram = name
-  .replace(/^The /, '')
-  .split(/[\s&·]+/)
-  .filter(Boolean)
-  .slice(0, 2)
-  .map((word) => word[0])
-  .join('');
 ---
 
 <li class="npc-entry">
-  {
-    portrait ? (
-      <img class="npc-thumb" src={portrait} alt="" loading="lazy" />
-    ) : (
-      <span class="npc-thumb monogram" aria-hidden="true">
-        {monogram}
-      </span>
-    )
-  }
   <div class="npc-entry-body">
     <div class="npc-entry-head">
       <div class="npc-name">
