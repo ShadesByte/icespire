@@ -2427,6 +2427,12 @@ body {
 .doc-toc {
   border-left: 1px solid var(--border-subtle);
   padding-left: var(--space-4);
+  /* Follow the reader down a long page so the section links stay in reach.
+     Cap the height and let the rail scroll on its own if it ever overflows. */
+  position: sticky;
+  top: var(--space-6);
+  max-height: calc(100vh - var(--space-6) * 2);
+  overflow-y: auto;
 }
 
 /* The rail is in-page navigation for a long read; on narrow screens the
@@ -2474,6 +2480,12 @@ body {
 
 .doc-toc a:hover {
   color: var(--link-hover);
+}
+
+/* The section the reader is currently in, tracked by the scroll-spy script. */
+.doc-toc a.active,
+.doc-toc li:not(.sub) > a.active {
+  color: var(--accent-gold);
 }
 
 /* ---------- 404 page ---------- */
