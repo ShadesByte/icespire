@@ -1627,6 +1627,9 @@ body {
   stroke-width: 2.2;
   stroke-dasharray: 7 5;
   stroke-linecap: round;
+  /* Hold the line weight steady as the terrain zooms, so routes stay a hair
+     rather than a rope when the reader leans in. */
+  vector-effect: non-scaling-stroke;
 }
 
 .map-route-leg.latest .leg {
@@ -1816,6 +1819,7 @@ body {
   stroke: var(--border-strong);
   stroke-width: 1;
   opacity: 0.8;
+  vector-effect: non-scaling-stroke;
 }
 
 /* Zoom controls */

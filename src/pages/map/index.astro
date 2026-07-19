@@ -207,7 +207,7 @@ const entries = await Promise.all(
             <g class:list={['map-route-leg', { latest: t.latest }]} style={`opacity:${t.opacity.toFixed(2)}`}>
               <path class="leg" d={t.d} />
               <path
-                class="map-route-chevron"
+                class="map-route-chevron map-cscale"
                 d="M -5 -4.5 L 4 0 L -5 4.5"
                 transform={`translate(${t.midX.toFixed(1)} ${t.midY.toFixed(1)}) rotate(${t.angle.toFixed(1)})`}
               />
@@ -216,7 +216,7 @@ const entries = await Promise.all(
         </g>
         <g class="map-route-tags" aria-hidden="true">
           {traversals.map((t) => (
-            <text x={t.tagX.toFixed(1)} y={t.tagY.toFixed(1)}>
+            <text class="map-cscale" transform={`translate(${t.tagX.toFixed(1)} ${t.tagY.toFixed(1)})`}>
               S{t.session}
             </text>
           ))}
@@ -225,7 +225,7 @@ const entries = await Promise.all(
         {
           currentLocation && (
             <g
-              class="map-here"
+              class="map-here map-cscale"
               transform={`translate(${currentLocation.data.x} ${currentLocation.data.y})`}
               aria-hidden="true"
             >
@@ -248,7 +248,7 @@ const entries = await Promise.all(
                     y2={pin.tickY2}
                   />
                   <g
-                    class:list={['map-pin', { battle: pin.kind === 'battle' }]}
+                    class:list={['map-pin', 'map-cscale', { battle: pin.kind === 'battle' }]}
                     transform={`translate(${pin.x.toFixed(1)} ${pin.y.toFixed(1)})`}
                     data-open={loc.id}
                     data-tip-title={pin.title}
@@ -275,6 +275,7 @@ const entries = await Promise.all(
               <g
                 class:list={[
                   'map-marker',
+                  'map-cscale',
                   `s-${loc.data.status}`,
                   { danger: loc.data.danger, minor: loc.data.kind === 'camp' },
                 ]}
@@ -429,6 +430,20 @@ const entries = await Promise.all(
   const panelDetail = document.getElementById('map-panel-detail')!;
   const panel = document.getElementById('map-panel')!;
 
+  // Markers, labels, pins and tags are drawn in map coordinates, so a naive
+  // zoom balloons them until the map is unreadable. Counter-scale each mark by
+  // 1/zoom about its own anchor so it holds a constant on-screen size — the
+  // terrain zooms, the overlay stays legible.
+  const cscaleEls = [...svg.querySelectorAll<SVGGraphicsElement>('.map-cscale')];
+  for (const el of cscaleEls) el.dataset.base = el.getAttribute('transform') ?? '';
+
+  function applyCounterScale(scale: number) {
+    const k = (1 / scale).toFixed(3);
+    for (const el of cscaleEls) {
+      el.setAttribute('transform', `${el.dataset.base} scale(${k})`);
+    }
+  }
+
   const viewer = initMapViewer({
     svg,
     frame,
@@ -442,6 +457,7 @@ const entries = await Promise.all(
     // at the resting zoom they'd bury the markers.
     onZoom: (scale) => {
       svg.dataset.zoom = scale >= 1.6 ? 'in' : 'out';
+      applyCounterScale(scale);
     },
   });
 
