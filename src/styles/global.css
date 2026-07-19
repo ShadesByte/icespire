@@ -669,6 +669,241 @@ body {
   padding: 3px;
 }
 
+/* ---------- Timeline: the whole story on one chronological spine ---------- */
+
+.timeline-intro {
+  max-width: 62ch;
+  margin-bottom: var(--space-6);
+}
+
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+/* One node per session, hung off a gold spine running down the left edge. */
+.tl-node {
+  position: relative;
+  padding-left: var(--space-6);
+  border-left: 2px solid var(--border-default);
+}
+
+.tl-node::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  box-shadow: 0 0 0 4px var(--bg-page);
+}
+
+/* The newest session is where the party now stands — the spine fades into it
+   and its node glows, mirroring the map's "you are here" marker. */
+.tl-node.latest {
+  border-left-color: var(--accent-gold-muted);
+}
+
+.tl-node.latest::before {
+  box-shadow:
+    0 0 0 4px var(--bg-page),
+    0 0 9px var(--accent-gold);
+}
+
+.tl-date {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.tl-session {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-lg);
+  line-height: var(--leading-tight);
+}
+
+.tl-session a {
+  text-decoration: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-3);
+}
+
+.tl-session-num {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-gold-strong);
+  flex-shrink: 0;
+}
+
+.tl-session-title {
+  font-family: var(--font-display);
+  color: var(--text-primary);
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.tl-session a:hover .tl-session-title {
+  color: var(--link-hover);
+}
+
+.tl-summary {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  margin: 0 0 var(--space-3);
+  max-width: 60ch;
+}
+
+.tl-route {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.tl-arrow {
+  color: var(--text-muted);
+}
+
+.tl-place {
+  color: var(--link);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.tl-place:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+
+.tl-place-static {
+  color: var(--text-muted);
+}
+
+.tl-events {
+  list-style: none;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Each moment sits on its own inset card, with a slim gold rule at the left;
+   battles take the ember rule — the only place danger earns the warm color. */
+.tl-event {
+  border-left: 2px solid var(--accent-gold-muted);
+  padding-left: var(--space-3);
+}
+
+.tl-event.battle {
+  border-left-color: var(--accent-ember);
+}
+
+.tl-event-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+
+.tl-event-kind {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-gold-strong);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+
+.tl-event.battle .tl-event-kind {
+  color: var(--accent-ember);
+  border-color: var(--accent-ember);
+}
+
+.tl-event-title {
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.tl-event-at {
+  font-size: var(--text-sm);
+  font-style: italic;
+  color: var(--link);
+  text-decoration: none;
+}
+
+.tl-event-at:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+
+.tl-event-note {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  margin: var(--space-1) 0 0;
+  max-width: 60ch;
+}
+
+.tl-encounters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+}
+
+.tl-encounters img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: var(--bg-inset);
+  border: 1px solid var(--border-default);
+  padding: 3px;
+}
+
+.tl-more {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.tl-more a {
+  color: var(--accent-gold-strong);
+  text-decoration: none;
+}
+
+.tl-more a:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .tl-node {
+    padding-left: var(--space-5);
+  }
+}
+
 /* ---------- Session page: prose + sidebar ---------- */
 
 .session-layout {
