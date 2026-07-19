@@ -4,7 +4,6 @@ role: 'Unhinged Tinkerer'
 affiliation: 'Gnomengarde (formerly)'
 status: neutral
 note: 'Shot Thom with a crossbow ballista. Freed by Rut. Screeched. Ran. Still out there.'
-portrait: '/images/creatures/rock-gnome-recluse.webp'
 firstAppearance: 2
 ---
 
