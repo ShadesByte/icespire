@@ -1705,6 +1705,20 @@ body {
   pointer-events: none;
 }
 
+/* ...but the place you've selected shows its own events straight away, so
+   choosing a spot surfaces its highlights without hunting for the zoom. */
+.map-svg[data-zoom='out'] .map-pin-group.reveal {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* A generous, invisible tap target around each mark — the visible art can stay
+   small while a finger still lands it. */
+.hit {
+  fill: transparent;
+  stroke: none;
+}
+
 /* Location markers */
 .map-marker {
   cursor: pointer;
@@ -1772,6 +1786,7 @@ body {
   stroke: var(--map-land);
   stroke-width: 3px;
   stroke-linejoin: round;
+  transition: opacity var(--duration-normal) var(--ease-standard);
 }
 
 .map-marker.s-rumored .map-label {
@@ -1782,6 +1797,24 @@ body {
 .map-marker.minor .map-label {
   font-size: 12.5px;
   fill: var(--text-secondary);
+}
+
+/* The resting overview is the journey spine: places the party has actually
+   been keep their names; sighted/rumored spots stay as quiet dots until you
+   hover, focus or select them (or zoom in), so the map never reads as a wall
+   of labels — worst of all on a phone. */
+.map-svg[data-zoom='out'] .map-marker.s-known .map-label,
+.map-svg[data-zoom='out'] .map-marker.s-rumored .map-label {
+  opacity: 0;
+}
+
+.map-svg[data-zoom='out'] .map-marker.s-known:hover .map-label,
+.map-svg[data-zoom='out'] .map-marker.s-known:focus-visible .map-label,
+.map-svg[data-zoom='out'] .map-marker.s-known.selected .map-label,
+.map-svg[data-zoom='out'] .map-marker.s-rumored:hover .map-label,
+.map-svg[data-zoom='out'] .map-marker.s-rumored:focus-visible .map-label,
+.map-svg[data-zoom='out'] .map-marker.s-rumored.selected .map-label {
+  opacity: 1;
 }
 
 /* Event pins */
@@ -2058,6 +2091,148 @@ body {
 .map-quicklinks a:hover {
   color: var(--link-hover);
   border-color: var(--accent-gold);
+}
+
+/* ---------- The journey so far ----------
+ * A plain-language, tappable retelling of the route beneath the map. This is
+ * the reliable way to read the journey — no zooming, no landing a finger on a
+ * three-pixel dot — and doubles as the map's index on a phone. */
+.map-journey {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.map-journey .kicker {
+  margin-bottom: var(--space-3);
+}
+
+.mj-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* A slim timeline down the left edge, one node per session. */
+.mj-leg {
+  position: relative;
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--border-default);
+}
+
+.mj-leg::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  box-shadow: 0 0 0 3px var(--bg-page);
+}
+
+.mj-leg:last-child {
+  border-left-color: var(--accent-gold-muted);
+}
+
+.mj-leg:last-child::before {
+  box-shadow:
+    0 0 0 3px var(--bg-page),
+    0 0 7px var(--accent-gold);
+}
+
+.mj-leg-head {
+  margin-bottom: var(--space-1);
+}
+
+.mj-leg-head a,
+.mj-leg-head span {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+  color: var(--accent-gold-strong);
+  text-decoration: none;
+}
+
+.mj-leg-head a:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+
+.mj-route {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  margin: 0 0 var(--space-2);
+}
+
+.mj-arrow {
+  color: var(--text-muted);
+}
+
+.mj-place {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--link);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.mj-place:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+
+.mj-events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.mj-event {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  font-size: var(--text-sm);
+}
+
+.mj-event-kind {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-gold-strong);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+
+.mj-event.battle .mj-event-kind {
+  color: var(--accent-ember);
+  border-color: var(--accent-ember);
+}
+
+.mj-event-title {
+  color: var(--text-primary);
+}
+
+.mj-at {
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 /* Gold call-to-action link (detail panel, lore pages) */
