@@ -798,9 +798,10 @@ body {
 }
 
 .creature-art img {
-  max-width: 100%;
-  max-height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
+  object-position: bottom;
   filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
 }
 
@@ -1042,27 +1043,6 @@ body {
 .npc-entry-head .npc-name {
   flex: 1 1 auto;
   min-width: 0;
-}
-
-.npc-thumb {
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
-  border-radius: 50%;
-  background: var(--bg-inset);
-  border: 1px solid var(--border-default);
-  padding: 4px;
-  flex-shrink: 0;
-}
-
-.npc-thumb.monogram {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
-  font-size: var(--text-sm);
-  letter-spacing: var(--tracking-wide);
-  color: var(--text-muted);
 }
 
 /* NPC detail page: prose beside the official art, when there is any */
@@ -2445,8 +2425,6 @@ body {
 }
 
 .doc-toc {
-  position: sticky;
-  top: var(--space-5);
   border-left: 1px solid var(--border-subtle);
   padding-left: var(--space-4);
 }
