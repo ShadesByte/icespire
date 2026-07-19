@@ -1,0 +1,560 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import StatusPill from '../../components/StatusPill.astro';
+import { url } from '../../utils/url';
+
+// The political web: the party at the centre, factions on an inner ring, and
+// every NPC on an outer ring clustered beside the faction they answer to.
+// Lines carry disposition — an NPC's stance toward the party (and the party's
+// standing with each faction) in ally green, hostile ember, unresolved gold,
+// or neutral frost. Membership lines (NPC → faction) are dashed and quiet.
+// Everything is laid out at build time; the page ships a single inline SVG.
+
+type Disposition = 'ally' | 'hostile' | 'unresolved' | 'neutral';
+
+const factions = (await getCollection('factions')).sort((a, b) =>
+  a.data.name.localeCompare(b.data.name)
+);
+const npcs = (await getCollection('npcs')).sort((a, b) => a.data.name.localeCompare(b.data.name));
+const party = (await getCollection('characters')).sort((a, b) =>
+  a.data.name.localeCompare(b.data.name)
+);
+
+// A faction's free-text alignment ("friendly", "complicated", ...) collapses
+// onto the same four dispositions the NPCs use, so one legend reads the whole
+// graph.
+function factionDisposition(alignment?: string): Disposition {
+  const a = (alignment ?? '').toLowerCase();
+  if (/hostile|enemy|foe|war/.test(a)) return 'hostile';
+  if (/friend|allied|\bally\b|warm/.test(a)) return 'ally';
+  if (/complicat|uneasy|unresolv|rival|mixed|tense/.test(a)) return 'unresolved';
+  return 'neutral';
+}
+
+const dispositionLabel: Record<Disposition, string> = {
+  ally: 'Ally',
+  hostile: 'Hostile',
+  unresolved: 'Unresolved',
+  neutral: 'At large',
+};
+
+// ---- Cluster NPCs by faction. An NPC whose `faction` slug doesn't resolve is
+// treated as unaffiliated rather than failing the build.
+const factionIds = new Set(factions.map((f) => f.id));
+const membersByFaction = new Map<string, typeof npcs>();
+for (const f of factions) membersByFaction.set(f.id, []);
+const unaffiliated: typeof npcs = [];
+for (const n of npcs) {
+  if (n.data.faction && factionIds.has(n.data.faction)) {
+    membersByFaction.get(n.data.faction)!.push(n);
+  } else {
+    unaffiliated.push(n);
+  }
+}
+
+// ---- Geometry. The party sits dead centre; each group (a faction and its
+// members, or the pool of unaffiliated NPCs) owns an angular wedge sized to its
+// headcount, so busy factions get room and lone figures aren't crowded.
+const W = 1200;
+const H = 780;
+const CX = W / 2;
+const CY = H / 2;
+const R_FACTION = 190; // inner ring: faction hubs
+const R_NPC = 288; // outer ring: individual NPCs
+
+interface Group {
+  faction?: (typeof factions)[number];
+  members: typeof npcs;
+}
+const groups: Group[] = [
+  ...factions.map((f) => ({ faction: f, members: membersByFaction.get(f.id)! })),
+  ...(unaffiliated.length ? [{ members: unaffiliated }] : []),
+];
+const weights = groups.map((g) => Math.max(g.members.length, 1));
+const totalWeight = weights.reduce((a, b) => a + b, 0) || 1;
+
+const pos = new Map<string, { x: number; y: number }>();
+pos.set('party', { x: CX, y: CY });
+
+interface FactionNode {
+  id: string;
+  data: (typeof factions)[number]['data'];
+  disp: Disposition;
+  x: number;
+  y: number;
+  labelDown: boolean;
+  members: { id: string; name: string; status: Disposition }[];
+}
+interface NpcNode {
+  id: string;
+  data: (typeof npcs)[number]['data'];
+  x: number;
+  y: number;
+  lx: number;
+  ly: number;
+  anchor: 'start' | 'middle' | 'end';
+}
+const factionNodes: FactionNode[] = [];
+const npcNodes: NpcNode[] = [];
+
+let acc = 0;
+const START = -Math.PI / 2; // first wedge opens at the top
+for (let gi = 0; gi < groups.length; gi++) {
+  const g = groups[gi];
+  const span = 2 * Math.PI * (weights[gi] / totalWeight);
+  const start = START + 2 * Math.PI * (acc / totalWeight);
+  acc += weights[gi];
+  const center = start + span / 2;
+
+  if (g.faction) {
+    const fx = CX + Math.cos(center) * R_FACTION;
+    const fy = CY + Math.sin(center) * R_FACTION;
+    pos.set(`faction:${g.faction.id}`, { x: fx, y: fy });
+    factionNodes.push({
+      id: g.faction.id,
+      data: g.faction.data,
+      disp: factionDisposition(g.faction.data.alignment),
+      x: fx,
+      y: fy,
+      labelDown: Math.sin(center) >= -0.15,
+      members: g.members.map((m) => ({ id: m.id, name: m.data.name, status: m.data.status })),
+    });
+  }
+
+  const m = g.members.length;
+  // Spread members across ~72% of the wedge so gaps separate the groups.
+  const usable = m > 1 ? span * 0.72 : 0;
+  for (let i = 0; i < m; i++) {
+    const t = m === 1 ? center : center - usable / 2 + usable * (i / (m - 1));
+    const nx = CX + Math.cos(t) * R_NPC;
+    const ny = CY + Math.sin(t) * R_NPC;
+    const c = Math.cos(t);
+    pos.set(`npc:${g.members[i].id}`, { x: nx, y: ny });
+    npcNodes.push({
+      id: g.members[i].id,
+      data: g.members[i].data,
+      x: nx,
+      y: ny,
+      // Labels ride further out along the same spoke, anchored so text always
+      // leans away from the hub.
+      lx: CX + Math.cos(t) * (R_NPC + 20),
+      ly: CY + Math.sin(t) * (R_NPC + 20),
+      anchor: c > 0.25 ? 'start' : c < -0.25 ? 'end' : 'middle',
+    });
+  }
+}
+
+// ---- Edges. Stance edges (party ↔ figure) carry disposition colour;
+// membership edges (NPC ↔ faction) are the quiet dashed connective tissue.
+interface Edge {
+  a: string;
+  b: string;
+  disp: Disposition;
+  member: boolean;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+const edges: Edge[] = [];
+function pushEdge(a: string, b: string, disp: Disposition, member = false) {
+  const pa = pos.get(a);
+  const pb = pos.get(b);
+  if (!pa || !pb) return;
+  edges.push({ a, b, disp, member, x1: pa.x, y1: pa.y, x2: pb.x, y2: pb.y });
+}
+for (const f of factionNodes) pushEdge('party', `faction:${f.id}`, f.disp);
+for (const n of npcNodes) {
+  pushEdge('party', `npc:${n.id}`, n.data.status);
+  if (n.data.faction && factionIds.has(n.data.faction)) {
+    pushEdge(`npc:${n.id}`, `faction:${n.data.faction}`, 'neutral', true);
+  }
+}
+// Membership lines paint under the stance lines, which paint under the nodes.
+const memberEdges = edges.filter((e) => e.member);
+const stanceEdges = edges.filter((e) => !e.member);
+
+function hexPoints(cx: number, cy: number, r: number) {
+  return Array.from({ length: 6 }, (_, i) => {
+    const a = (Math.PI / 3) * i - Math.PI / 2;
+    return `${(cx + Math.cos(a) * r).toFixed(1)},${(cy + Math.sin(a) * r).toFixed(1)}`;
+  }).join(' ');
+}
+
+const roleLine = (role?: string, affiliation?: string) =>
+  [role, affiliation].filter(Boolean).join(' · ');
+---
+
+<Base
+  title="The Political Web"
+  description="How the party, the NPCs, and the factions all connect — allies, enemies, and unresolved threads."
+>
+  <div class="kicker">Who owes whom</div>
+  <h1 class="page-title">The Political Web</h1>
+
+  <div class="graph-layout">
+    <div class="graph-main">
+      <div class="graph-frame" id="graph-frame">
+        <svg
+          class="graph-svg"
+          id="graph-svg"
+          viewBox={`0 0 ${W} ${H}`}
+          role="group"
+          aria-label="Relationship graph of the party, NPCs, and factions"
+        >
+          <g class="g-edges" aria-hidden="true">
+            {
+              memberEdges.map((e) => (
+                <line
+                  class:list={['g-edge', 'member', e.disp]}
+                  data-a={e.a}
+                  data-b={e.b}
+                  x1={e.x1.toFixed(1)}
+                  y1={e.y1.toFixed(1)}
+                  x2={e.x2.toFixed(1)}
+                  y2={e.y2.toFixed(1)}
+                />
+              ))
+            }
+            {
+              stanceEdges.map((e) => (
+                <line
+                  class:list={['g-edge', e.disp]}
+                  data-a={e.a}
+                  data-b={e.b}
+                  x1={e.x1.toFixed(1)}
+                  y1={e.y1.toFixed(1)}
+                  x2={e.x2.toFixed(1)}
+                  y2={e.y2.toFixed(1)}
+                />
+              ))
+            }
+          </g>
+
+          <g class="g-nodes">
+            {
+              factionNodes.map((f) => (
+                <g
+                  class:list={['g-node', 'faction', f.disp]}
+                  data-node={`faction:${f.id}`}
+                  data-open={`faction:${f.id}`}
+                  data-tip-title={f.data.name}
+                  data-tip-sub={[f.data.type, dispositionLabel[f.disp]].filter(Boolean).join(' · ')}
+                  tabindex="0"
+                  role="button"
+                  aria-label={`Faction: ${f.data.name}`}
+                >
+                  <circle class="g-hit" cx={f.x} cy={f.y} r="30" />
+                  <polygon class="g-hex" points={hexPoints(f.x, f.y, 21)} />
+                  <text
+                    class="g-label g-flabel"
+                    x={f.x}
+                    y={f.labelDown ? f.y + 36 : f.y - 30}
+                    text-anchor="middle"
+                  >
+                    {f.data.name}
+                  </text>
+                </g>
+              ))
+            }
+
+            {
+              npcNodes.map((n) => (
+                <g
+                  class:list={['g-node', 'npc', n.data.status]}
+                  data-node={`npc:${n.id}`}
+                  data-open={`npc:${n.id}`}
+                  data-tip-title={n.data.name}
+                  data-tip-sub={roleLine(n.data.role, n.data.affiliation) || dispositionLabel[n.data.status]}
+                  tabindex="0"
+                  role="button"
+                  aria-label={`NPC: ${n.data.name}`}
+                >
+                  <circle class="g-hit" cx={n.x} cy={n.y} r="24" />
+                  <circle class="g-ring" cx={n.x} cy={n.y} r="12.5" />
+                  <text class="g-label" x={n.lx.toFixed(1)} y={n.ly.toFixed(1)} text-anchor={n.anchor}>
+                    {n.data.name}
+                  </text>
+                </g>
+              ))
+            }
+
+            <g
+              class="g-node party"
+              data-node="party"
+              data-open="party"
+              data-tip-title="The Party"
+              data-tip-sub={`${party.length} adventurers`}
+              tabindex="0"
+              role="button"
+              aria-label="The Party"
+            >
+              <circle class="g-hit" cx={CX} cy={CY} r="40" />
+              <circle class="g-party-halo" cx={CX} cy={CY} r="30" />
+              <circle class="g-party-dot" cx={CX} cy={CY} r="26" />
+              <text class="g-label g-party-label" x={CX} y={CY + 1} text-anchor="middle">
+                Party
+              </text>
+            </g>
+          </g>
+        </svg>
+
+        <div class="graph-controls">
+          <button type="button" id="graph-zoom-in" aria-label="Zoom in">+</button>
+          <button type="button" id="graph-zoom-out" aria-label="Zoom out">−</button>
+          <button type="button" id="graph-zoom-reset" aria-label="Reset view">⌂</button>
+        </div>
+        <div class="graph-tooltip" id="graph-tooltip" hidden>
+          <div class="tip-title"></div>
+          <div class="tip-sub"></div>
+        </div>
+        <div class="graph-hint" aria-hidden="true">Tap anyone to trace their ties</div>
+      </div>
+
+      {/* The graph shows the shape of the web; this reads it out, faction by
+          faction — the reliable path on a phone, no tiny targets required. */}
+      <section class="graph-rollcall" aria-label="Roll call by allegiance">
+        <div class="kicker">By allegiance</div>
+        <div class="rollcall-grid">
+          {
+            factionNodes.map((f) => (
+              <div class="rollcall-group">
+                <h2 class="rollcall-head">
+                  <a href={url(`/factions/${f.id}/`)}>{f.data.name}</a>
+                  <span class={`rollcall-tag ${f.disp}`}>{dispositionLabel[f.disp]}</span>
+                </h2>
+                {f.members.length ? (
+                  <ul class="rollcall-list">
+                    {f.members.map((m) => (
+                      <li>
+                        <a href={url(`/npcs/${m.id}/`)}>{m.name}</a>
+                        <StatusPill status={m.status} />
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p class="rollcall-empty">No known members yet.</p>
+                )}
+              </div>
+            ))
+          }
+          {
+            unaffiliated.length > 0 && (
+              <div class="rollcall-group">
+                <h2 class="rollcall-head">Unaffiliated</h2>
+                <ul class="rollcall-list">
+                  {unaffiliated.map((n) => (
+                    <li>
+                      <a href={url(`/npcs/${n.id}/`)}>{n.data.name}</a>
+                      <StatusPill status={n.data.status} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          }
+        </div>
+      </section>
+    </div>
+
+    <aside class="graph-panel" id="graph-panel" aria-live="polite">
+      <div id="graph-panel-home">
+        <div class="kicker">Legend</div>
+        <ul class="graph-legend">
+          <li><span class="glg-shape party"></span> The party — everyone connects here</li>
+          <li><span class="glg-shape faction"></span> A faction</li>
+          <li><span class="glg-shape npc"></span> An NPC</li>
+          <li><span class="glg-line ally"></span> Ally</li>
+          <li><span class="glg-line hostile"></span> Hostile</li>
+          <li><span class="glg-line unresolved"></span> Unresolved thread</li>
+          <li><span class="glg-line neutral"></span> At large / neutral</li>
+          <li><span class="glg-line member"></span> Belongs to a faction</li>
+        </ul>
+        <p class="graph-panel-hint">
+          Choose anyone to light up their ties and read their entry. Line colour
+          is disposition toward the party; the dashed lines mark who answers to
+          which faction. Drag to pan, scroll or pinch to zoom.
+        </p>
+      </div>
+      <div id="graph-panel-detail" hidden></div>
+
+      {
+        factionNodes.map((f) => (
+          <template data-node={`faction:${f.id}`}>
+            <button class="graph-panel-close" type="button" aria-label="Back to legend">
+              ×
+            </button>
+            <div class="kicker">Faction</div>
+            <h2 class="graph-panel-title">{f.data.name}</h2>
+            <p class="graph-panel-meta">
+              {[f.data.type, f.data.alignment, f.data.status].filter(Boolean).join(' · ')}
+            </p>
+            {f.data.summary && <p class="graph-panel-body">{f.data.summary}</p>}
+            {f.members.length > 0 && (
+              <>
+                <h3 class="graph-panel-sub">Answers to this faction</h3>
+                <ul class="graph-panel-members">
+                  {f.members.map((m) => (
+                    <li>
+                      <a href={url(`/npcs/${m.id}/`)}>{m.name}</a>
+                      <StatusPill status={m.status} />
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            <p class="graph-panel-links">
+              <a href={url(`/factions/${f.id}/`)}>Codex entry →</a>
+            </p>
+          </template>
+        ))
+      }
+
+      {
+        npcNodes.map((n) => (
+          <template data-node={`npc:${n.id}`}>
+            <button class="graph-panel-close" type="button" aria-label="Back to legend">
+              ×
+            </button>
+            <div class="kicker">NPC</div>
+            <h2 class="graph-panel-title">{n.data.name}</h2>
+            <p class="graph-panel-meta graph-panel-metarow">
+              {roleLine(n.data.role, n.data.affiliation) && (
+                <span>{roleLine(n.data.role, n.data.affiliation)}</span>
+              )}
+              <StatusPill status={n.data.status} />
+            </p>
+            {n.data.note && <p class="graph-panel-body">{n.data.note}</p>}
+            {n.data.firstAppearance != null && (
+              <p class="graph-panel-meta">First appeared in session {n.data.firstAppearance}</p>
+            )}
+            <p class="graph-panel-links">
+              <a href={url(`/npcs/${n.id}/`)}>Full entry →</a>
+              {n.data.faction && factionIds.has(n.data.faction) && (
+                <a href={url(`/factions/${n.data.faction}/`)}>Faction →</a>
+              )}
+            </p>
+          </template>
+        ))
+      }
+
+      <template data-node="party">
+        <button class="graph-panel-close" type="button" aria-label="Back to legend">×</button>
+        <div class="kicker">The Party</div>
+        <h2 class="graph-panel-title">The Party</h2>
+        <p class="graph-panel-body">
+          The centre of every thread — the adventurers whose choices the whole web
+          answers to.
+        </p>
+        <h3 class="graph-panel-sub">The adventurers</h3>
+        <ul class="graph-panel-members">
+          {party.map((c) => (
+            <li>
+              <a href={url(`/characters/${c.id}/`)}>{c.data.name}</a>
+              <span class="graph-member-sub">{[c.data.ancestry, c.data.class].filter(Boolean).join(' ')}</span>
+            </li>
+          ))}
+        </ul>
+        <p class="graph-panel-links">
+          <a href={url('/characters/')}>Full roster →</a>
+        </p>
+      </template>
+    </aside>
+  </div>
+</Base>
+
+<script>
+  import { initMapViewer } from '../../scripts/map-viewer';
+
+  const svg = document.getElementById('graph-svg') as unknown as SVGSVGElement;
+  const frame = document.getElementById('graph-frame')!;
+  const tooltip = document.getElementById('graph-tooltip')!;
+  const panel = document.getElementById('graph-panel')!;
+  const panelHome = document.getElementById('graph-panel-home')!;
+  const panelDetail = document.getElementById('graph-panel-detail')!;
+
+  const viewer = initMapViewer({
+    svg,
+    frame,
+    tooltip,
+    width: 1200,
+    height: 780,
+    maxZoom: 4,
+    zoomInBtn: document.getElementById('graph-zoom-in'),
+    zoomOutBtn: document.getElementById('graph-zoom-out'),
+    resetBtn: document.getElementById('graph-zoom-reset'),
+  });
+
+  const nodeEls = [...svg.querySelectorAll<SVGGElement>('.g-node[data-node]')];
+  const edgeEls = [...svg.querySelectorAll<SVGLineElement>('.g-edge')];
+
+  // Light up a node, the edges touching it, and the nodes on the far end;
+  // everything else recedes so a single web of ties stands clear.
+  function focusNode(id: string) {
+    svg.classList.add('has-focus');
+    const neighbours = new Set<string>([id]);
+    for (const edge of edgeEls) {
+      const incident = edge.dataset.a === id || edge.dataset.b === id;
+      edge.classList.toggle('lit', incident);
+      if (incident) {
+        neighbours.add(edge.dataset.a!);
+        neighbours.add(edge.dataset.b!);
+      }
+    }
+    for (const node of nodeEls) {
+      node.classList.toggle('lit', neighbours.has(node.dataset.node!));
+    }
+  }
+
+  function clearFocus() {
+    svg.classList.remove('has-focus');
+    for (const el of [...nodeEls, ...edgeEls]) el.classList.remove('lit');
+  }
+
+  function openNode(id: string) {
+    const tpl = panel.querySelector<HTMLTemplateElement>(`template[data-node="${id}"]`);
+    if (!tpl) return;
+    panelDetail.innerHTML = '';
+    panelDetail.appendChild(tpl.content.cloneNode(true));
+    panelDetail.hidden = false;
+    panelHome.hidden = true;
+    focusNode(id);
+    if (window.matchMedia('(max-width: 900px)').matches) {
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  function closePanel() {
+    panelDetail.hidden = true;
+    panelDetail.innerHTML = '';
+    panelHome.hidden = false;
+    clearFocus();
+  }
+
+  panel.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('.graph-panel-close')) closePanel();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !panelDetail.hidden) closePanel();
+  });
+
+  for (const el of nodeEls) {
+    el.addEventListener('click', () => {
+      if (viewer.wasDrag()) return; // it was a pan, not a click
+      openNode(el.dataset.node!);
+    });
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openNode(el.dataset.node!);
+      }
+    });
+  }
+
+  // A click on empty canvas (not a node, not a pan) clears the selection.
+  svg.addEventListener('click', (e) => {
+    if (viewer.wasDrag()) return;
+    if (!(e.target as Element).closest('.g-node') && !panelDetail.hidden) closePanel();
+  });
+</script>
