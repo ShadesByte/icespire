@@ -45,61 +45,54 @@ const showToc = toc.length >= 3;
   {
     showToc && (
       <script is:inline>
-        {`
-      (() => {
-        const links = Array.from(document.querySelectorAll('.doc-toc a'));
-        if (!links.length) return;
-        // Map each heading element to its rail link via the '#slug' hash.
-        const byId = new Map();
-        for (const link of links) {
-          const id = decodeURIComponent((link.getAttribute('href') || '').slice(1));
-          const heading = id && document.getElementById(id);
-          if (heading) byId.set(heading, link);
-        }
-        if (!byId.size) return;
-
-        let current = null;
-        const setActive = (link) => {
-          if (link === current) return;
-          if (current) current.classList.remove('active');
-          if (link) link.classList.add('active');
-          current = link;
-        };
-
-        // Track which headings are above the reading line; the lowest one
-        // still above it is the section the reader is currently in.
-        const visible = new Set();
-        const pick = () => {
-          let best = null;
-          let bestTop = -Infinity;
-          for (const heading of byId.keys()) {
-            const top = heading.getBoundingClientRect().top;
-            // A little below the top edge counts as "the current section".
-            if (top <= 120 && top > bestTop) {
-              bestTop = top;
-              best = heading;
-            }
+        (() => {
+          const links = Array.from(document.querySelectorAll('.doc-toc a'));
+          if (!links.length) return;
+          // Map each heading element to its rail link via the '#slug' hash.
+          const byId = new Map();
+          for (const link of links) {
+            const id = decodeURIComponent((link.getAttribute('href') || '').slice(1));
+            const heading = id && document.getElementById(id);
+            if (heading) byId.set(heading, link);
           }
-          // Before scrolling past the first heading, highlight the first one.
-          if (!best) best = byId.keys().next().value;
-          setActive(byId.get(best) || null);
-        };
+          if (!byId.size) return;
 
-        const observer = new IntersectionObserver(
-          (entries) => {
-            for (const entry of entries) {
-              if (entry.isIntersecting) visible.add(entry.target);
-              else visible.delete(entry.target);
+          let current = null;
+          const setActive = (link) => {
+            if (link === current) return;
+            if (current) current.classList.remove('active');
+            if (link) link.classList.add('active');
+            current = link;
+          };
+
+          // The section the reader is in is the lowest heading still above the
+          // reading line near the top of the viewport.
+          const pick = () => {
+            // At the bottom of the page the last section can't scroll up to the
+            // reading line, so highlight it once we've reached the end.
+            if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 2) {
+              const headings = Array.from(byId.keys());
+              setActive(byId.get(headings[headings.length - 1]) || null);
+              return;
             }
-            pick();
-          },
-          { rootMargin: '0px 0px -70% 0px', threshold: 0 }
-        );
-        for (const heading of byId.keys()) observer.observe(heading);
-        pick();
-        window.addEventListener('scroll', pick, { passive: true });
-      })();
-    `}
+            let best = null;
+            let bestTop = -Infinity;
+            for (const heading of byId.keys()) {
+              const top = heading.getBoundingClientRect().top;
+              if (top <= 120 && top > bestTop) {
+                bestTop = top;
+                best = heading;
+              }
+            }
+            // Before scrolling past the first heading, highlight the first one.
+            if (!best) best = byId.keys().next().value;
+            setActive(byId.get(best) || null);
+          };
+
+          pick();
+          window.addEventListener('scroll', pick, { passive: true });
+          window.addEventListener('resize', pick, { passive: true });
+        })();
       </script>
     )
   }
