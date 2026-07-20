@@ -1,9 +1,8 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 
-// Deployed to GitHub Pages at https://shadesbyte.github.io/icespire
-// If you later add a custom domain, change `site` and remove `base`.
+// Deployed to Cloudflare Pages at https://icespire.ghostbloods.net
+// Served from the root of its own subdomain, so no `base` prefix is needed.
 export default defineConfig({
-  site: 'https://shadesbyte.github.io',
-  base: '/icespire',
+  site: 'https://icespire.ghostbloods.net',
 });

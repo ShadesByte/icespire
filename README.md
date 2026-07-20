@@ -3,8 +3,8 @@
 The chronicle of our D&D campaign: session recaps, a running campaign summary,
 the party roster, an NPC directory, and a faction & lore codex.
 
-Built with [Astro](https://astro.build) and deployed to GitHub Pages at
-**https://shadesbyte.github.io/icespire/** (deploys automatically on every push
+Built with [Astro](https://astro.build) and deployed to Cloudflare Pages at
+**https://icespire.ghostbloods.net/** (deploys automatically on every push
 to `main`).
 
 ## Site structure
@@ -165,7 +165,20 @@ npm run dev      # local dev server at localhost:4321
 npm run build    # production build (also validates all content)
 ```
 
-## One-time GitHub setup
+## One-time Cloudflare Pages setup
 
-For deploys to work, enable Pages in the repo settings:
-**Settings → Pages → Source: "GitHub Actions"**.
+Deploys are handled by Cloudflare Pages (not GitHub Actions). Connect the repo
+once in the Cloudflare dashboard:
+
+1. **Workers & Pages → Create → Pages → Connect to Git**, select this repo.
+2. Build settings:
+   - **Framework preset:** Astro
+   - **Build command:** `npm run build`
+   - **Build output directory:** `dist`
+   - Node version is pinned to 22 via `.nvmrc`.
+3. **Custom domains → Set up a custom domain →** `icespire.ghostbloods.net`.
+   Cloudflare adds the DNS record and provisions TLS automatically since the
+   `ghostbloods.net` zone is already on Cloudflare.
+
+After that, every push to `main` triggers a production deploy, and other
+branches / PRs get automatic preview URLs.
