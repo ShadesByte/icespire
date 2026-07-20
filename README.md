@@ -157,6 +157,24 @@ The design is implemented from the **Icespire Peak Campaign Design System**
 - Fonts load from Google Fonts (the design system's documented substitution —
   swap `src/styles/tokens/fonts.css` if self-hosting later).
 
+## Social preview cards
+
+Each session gets its own Open Graph image, so a recap link shared in Discord
+or elsewhere shows that session's title and date rather than one shared card.
+The images are generated at build time — no network needed — from
+`src/lib/og.ts` (satori lays the card out with the campaign's fonts; sharp
+rasterises it to PNG), served at `/og/sessions/<id>.png` via
+`src/pages/og/sessions/[id].png.ts`, and wired to a page through the `ogImage`
+prop on `Base.astro`. The card fonts are bundled under `src/assets/og-fonts/`
+(Cinzel + Crimson Pro, `.woff`); every other page falls back to the static
+`/images/social-card.jpg`. To give another page type its own card, add an
+endpoint that calls `renderOgCard(...)` and point its `ogImage` at it.
+
+## Roadmap
+
+Planned and possible improvements are tracked in
+[`docs/ROADMAP.md`](docs/ROADMAP.md) — check there before starting new work.
+
 ## Development
 
 ```sh
