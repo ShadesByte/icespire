@@ -22,7 +22,9 @@ export const GET: APIRoute = async ({ props }) => {
     title: session.data.title,
     subtitle: date,
   });
-  return new Response(png, {
+  // Wrap in a plain Uint8Array: a Node Buffer's ArrayBufferLike type isn't a
+  // valid Response BodyInit, but the underlying bytes are identical.
+  return new Response(new Uint8Array(png), {
     headers: {
       'Content-Type': 'image/png',
       'Cache-Control': 'public, max-age=31536000, immutable',
