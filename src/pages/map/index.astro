@@ -290,7 +290,7 @@ for (const leg of journey) {
           <div class="scrub-readout" id="scrub-readout" aria-live="polite"></div>
         </div>
       </div>
-      <script type="application/json" id="scrub-data" set:html={JSON.stringify(scrubSessions)} />
+      <script is:inline type="application/json" id="scrub-data" set:html={JSON.stringify(scrubSessions)} />
     )}
     <div class="map-frame" id="map-frame">
       <svg

@@ -130,7 +130,7 @@ for (const [alias, owners] of aliasOwners) {
 const json = JSON.stringify(entities).replaceAll('<', '\\u003c');
 ---
 
-<script type="application/json" id="entity-link-data" set:html={json} />
+<script is:inline type="application/json" id="entity-link-data" set:html={json} />
 <script>
   import '../scripts/entity-links';
 </script>
