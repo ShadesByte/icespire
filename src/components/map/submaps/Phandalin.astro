@@ -45,7 +45,7 @@ const hillArcs: [number, number, number][] = [
 const fields: { cx: number; cy: number; w: number; rows: number; rot: number }[] = [
   { cx: 610, cy: 462, w: 46, rows: 5, rot: -12 },
   { cx: 330, cy: 575, w: 44, rows: 4, rot: 8 },
-  { cx: 100, cy: 565, w: 38, rows: 4, rot: -6 },
+  { cx: 158, cy: 598, w: 38, rows: 4, rot: -6 },
 ];
 ---
 
@@ -196,8 +196,8 @@ const fields: { cx: number; cy: number; w: number; rows: number; rot: number }[]
     <text x="50" y="-8">≈ 200 feet</text>
   </g>
 
-  <!-- Compass -->
-  <g class="m-compass" transform="translate(64 84)">
+  <!-- Compass (bottom-left, as on the official town map) -->
+  <g class="m-compass" transform="translate(62 560)">
     <circle r="18"></circle>
     <line x1="0" y1="13" x2="0" y2="-9"></line>
     <path class="m-compass-arrow" d="M0 -16 L5 -5 L0 -8 L-5 -5 Z"></path>
