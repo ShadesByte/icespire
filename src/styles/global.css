@@ -2393,6 +2393,16 @@ body {
 .sm-hall { fill: none; stroke: var(--bg-inset); stroke-width: 11; stroke-linecap: round; }
 .sm-bridge { stroke: var(--accent-gold-muted); stroke-width: 1.4; fill: none; }
 .sm-crenel { fill: none; stroke: var(--map-ridge); stroke-width: 5; stroke-dasharray: 7 4; }
+.sm-yardwall { fill: var(--map-ridge); stroke: none; filter: var(--map-elev); }
+.sm-rubble { fill: none; stroke: var(--map-shore); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1.5 3.5; }
+.sm-inset-frame { fill: var(--bg-surface); stroke: var(--map-shore); stroke-width: 1.2; opacity: 0.96; }
+.sm-inset-label {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 10px;
+  fill: var(--map-label);
+  text-anchor: middle;
+}
 .sm-snowpath { fill: none; stroke: var(--map-snow); stroke-width: 8; stroke-linecap: round; opacity: 0.28; }
 
 /* Labels inside sub-maps */
