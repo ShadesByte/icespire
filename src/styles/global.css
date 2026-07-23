@@ -2356,6 +2356,15 @@ body {
 
 .sm-inner { fill: none; stroke: var(--map-shore); stroke-width: 1.5; }
 
+/* Natural cavern floors (organic cave maps) */
+.sm-cave {
+  fill: var(--bg-inset);
+  stroke: var(--map-shore);
+  stroke-width: 3;
+  stroke-linejoin: round;
+  filter: var(--map-elev);
+}
+
 /* Buildings seen from above (village maps) */
 .sm-building {
   fill: var(--map-building);
