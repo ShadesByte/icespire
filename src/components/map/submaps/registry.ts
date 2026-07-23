@@ -66,7 +66,7 @@ export const submaps: Record<string, SubmapEntry> = {
   'dwarven-excavation': {
     Component: DwarvenExcavation,
     width: 900,
-    height: 560,
+    height: 573,
     scaleNote: 'The site spans about 400 feet',
     legend: [
       { label: "The dwarves' camp", note: 'Norbus & Dazlyn — food, lodging, and a 60/40 split' },
