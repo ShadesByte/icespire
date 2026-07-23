@@ -36,7 +36,7 @@ export const submaps: Record<string, SubmapEntry> = {
   phandalin: {
     Component: Phandalin,
     width: 900,
-    height: 650,
+    height: 646,
     scaleNote: 'The town spans about a third of a mile',
     legend: [
       { label: 'Stonehill Inn', note: 'rooms, stew, and the stranger who watched the party in Session 1' },
