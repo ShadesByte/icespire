@@ -36,7 +36,7 @@ export const submaps: Record<string, SubmapEntry> = {
   phandalin: {
     Component: Phandalin,
     width: 900,
-    height: 650,
+    height: 646,
     scaleNote: 'The town spans about a third of a mile',
     legend: [
       { label: 'Stonehill Inn', note: 'rooms, stew, and the stranger who watched the party in Session 1' },
@@ -51,7 +51,7 @@ export const submaps: Record<string, SubmapEntry> = {
   gnomengarde: {
     Component: Gnomengarde,
     width: 900,
-    height: 580,
+    height: 573,
     scaleNote: 'The warren spans about 350 feet',
     legend: [
       { label: 'The grotto pool', note: 'mushroom farm on the isles' },
@@ -66,7 +66,7 @@ export const submaps: Record<string, SubmapEntry> = {
   'dwarven-excavation': {
     Component: DwarvenExcavation,
     width: 900,
-    height: 560,
+    height: 573,
     scaleNote: 'The site spans about 400 feet',
     legend: [
       { label: "The dwarves' camp", note: 'Norbus & Dazlyn — food, lodging, and a 60/40 split' },
@@ -80,7 +80,7 @@ export const submaps: Record<string, SubmapEntry> = {
   'umbrage-hill': {
     Component: UmbrageHill,
     width: 900,
-    height: 570,
+    height: 573,
     scaleNote: 'The hilltop spans about 350 feet',
     legend: [
       { label: "Adabra Gwynn's windmill", note: 'the potions brew here and nowhere else' },

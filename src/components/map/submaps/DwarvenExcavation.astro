@@ -1,63 +1,55 @@
 ---
 // Local map of the Dwarven Excavation — the buried temple of Abbathor —
-// drawn from the official map's layout (offical-assets/Maps/
-// map-05.02-dwarven-excavation.jpg — reference only). An open canyon dig
-// in the west; the carved temple complex in the east. viewBox 900 × 560;
-// north is up.
+// traced 1-to-1 from the official map (offical-assets/Maps/
+// map-05.02-dwarven-excavation.jpg — reference only). Measured against
+// that scan on a 900 × 573 grid (its exact aspect): the open dig canyon
+// in the west, the carved temple complex in the east. Only the drawing
+// style departs from the source. North is up.
 
-// Broken settlement walls in the dig as [x, y, rot].
+// The dig-floor boundary (cliff rim), traced clockwise.
+const rim: [number, number][] = [
+  [395, 248], [360, 200], [320, 168], [280, 150], [230, 124], [198, 110],
+  [162, 132], [132, 172], [116, 220], [108, 270], [104, 315], [92, 360],
+  [76, 405], [74, 448], [84, 492], [102, 522], [124, 542], [160, 510],
+  [205, 462], [250, 412], [288, 368], [310, 342], [348, 322], [388, 302],
+];
+const digPath = 'M ' + rim.map(([x, y]) => `${x} ${y}`).join(' L ') + ' Z';
+// Cliff hachures: a short tick along the inward normal at each rim point.
+const rimTicks = rim.map(([x, y], i) => {
+  const [px, py] = rim[(i - 1 + rim.length) % rim.length];
+  const [nx, ny] = rim[(i + 1) % rim.length];
+  const ang = (Math.atan2(ny - py, nx - px) * 180) / Math.PI + 90;
+  return { x, y, ang };
+});
+
+// Buried-settlement walls (E2): [x, y, rot].
 const ruinWalls: [number, number, number][] = [
-  [200, 200, 0], [230, 185, 90], [262, 210, 0], [215, 250, 90],
-  [252, 255, 0], [287, 235, 45], [300, 262, 90], [180, 226, 45],
-  [270, 180, 0],
+  [218, 204, 0], [225, 231, 90], [252, 208, 0], [191, 215, 90], [202, 265, 0],
+  [233, 269, 90], [260, 265, 0], [275, 231, 45], [229, 308, 90], [291, 308, 0],
 ];
-
-// Rubble piles as [x, y] (each renders a pebble cluster).
-const digRubble: [number, number][] = [
-  [330, 270], [346, 295], [320, 300], [356, 274], [338, 316], [310, 280],
-];
-const hallRubble: [number, number][] = [[508, 208], [520, 214]];
-const eastRubble: [number, number][] = [[704, 284], [714, 290]];
-const roomRubble: [number, number][] = [[612, 384], [622, 376], [757, 307], [634, 318]];
-
-// Cliff hachure ticks along the canyon rim as [x, y, rot].
-const rimTicks: [number, number, number][] = [
-  [56, 470, 100], [52, 420, 95], [62, 372, 80], [80, 322, 70], [92, 272, 75],
-  [104, 224, 60], [128, 178, 45], [166, 142, 30], [214, 118, 10], [262, 112, -5],
-  [312, 124, -25], [352, 152, -45], [376, 192, -65], [388, 232, -80],
-  [382, 330, 65], [362, 366, 45], [330, 400, 35], [292, 434, 30],
-  [252, 466, 25], [210, 496, 20], [162, 522, 12], [110, 542, 6],
-];
+// Rubble piles: [x, y].
+const digRubble: [number, number][] = [[352, 262], [368, 315], [340, 288], [356, 300]];
+const gateRubble: [number, number][] = [[330, 240], [344, 250], [336, 320], [350, 312]];
+const hallRubble: [number, number][] = [[512, 200], [524, 206]];
+const roomRubble: [number, number][] = [[622, 320], [632, 326], [730, 320], [742, 314], [608, 388], [620, 380]];
 ---
 
 <g class="submap-excavation" aria-hidden="true">
-  <rect class="sm-rock" x="0" y="0" width="900" height="560" style="stroke:none;"></rect>
+  <rect class="sm-rock" x="0" y="0" width="900" height="573" style="stroke:none;"></rect>
 
   <g class="sm-crack">
-    <path d="M-14 0 Q-4 -4 2 1 Q8 5 14 2" transform="translate(560 90) rotate(15)"></path>
-    <path d="M-14 0 Q-4 -4 2 1 Q8 5 14 2" transform="translate(820 170) rotate(-20)"></path>
+    <path d="M-14 0 Q-4 -4 2 1 Q8 5 14 2" transform="translate(560 100) rotate(15)"></path>
+    <path d="M-14 0 Q-4 -4 2 1 Q8 5 14 2" transform="translate(820 180) rotate(-20)"></path>
     <path d="M-14 0 Q-4 -4 2 1 Q8 5 14 2" transform="translate(760 480) rotate(30)"></path>
-    <path d="M-14 0 Q-4 -4 2 1 Q8 5 14 2" transform="translate(460 470) rotate(-10)"></path>
+    <path d="M-14 0 Q-4 -4 2 1 Q8 5 14 2" transform="translate(460 480) rotate(-10)"></path>
     <path d="M-14 0 Q-4 -4 2 1 Q8 5 14 2" transform="translate(850 350) rotate(50)"></path>
   </g>
 
   <!-- The open canyon of the dig -->
-  <path
-    class="sm-open"
-    d="M 40 560
-       C 50 480 45 420 70 360
-       C 90 310 85 255 110 210
-       C 135 160 190 120 255 115
-       C 320 110 368 140 384 190
-       C 396 228 390 252 398 268
-       L 398 302
-       C 388 330 374 360 340 390
-       C 300 430 250 470 210 505
-       C 175 535 120 552 40 560
-       Z"></path>
+  <path class="sm-open" d={digPath}></path>
   <g class="sm-cliff">
-    {rimTicks.map(([x, y, r]) => (
-      <path d="M0 0 l 10 0" transform={`translate(${x} ${y}) rotate(${r})`} />
+    {rimTicks.map(({ x, y, ang }) => (
+      <path d="M0 0 l 10 0" transform={`translate(${x} ${y}) rotate(${ang})`} />
     ))}
   </g>
 
@@ -78,78 +70,74 @@ const rimTicks: [number, number, number][] = [
   </g>
 
   <!-- Rubble -->
-  {
-    [...digRubble, ...hallRubble, ...eastRubble, ...roomRubble].map(([x, y]) => (
-      <g class="sm-detail">
-        <circle cx={x} cy={y} r="3.4" />
-        <circle cx={x + 6} cy={y + 3} r="2.6" />
-        <circle cx={x - 4} cy={y + 5} r="2.2" />
-      </g>
-    ))
-  }
+  {[...digRubble, ...gateRubble, ...hallRubble, ...roomRubble].map(([x, y]) => (
+    <g class="sm-detail">
+      <circle cx={x} cy={y} r="3.4" />
+      <circle cx={x + 6} cy={y + 3} r="2.6" />
+      <circle cx={x - 4} cy={y + 5} r="2.2" />
+    </g>
+  ))}
 
   <!-- The dwarves' camp -->
   <g class="sm-detail-fill" style="stroke:none;">
-    <path d="M 155 292 l 20 -10 l 6 12 l -20 10 Z"></path>
-    <path d="M 214 320 l 22 -8 l 5 13 l -22 8 Z"></path>
+    <path d="M 150 292 l 20 -10 l 6 12 l -20 10 Z"></path>
+    <path d="M 190 320 l 22 -8 l 5 13 l -22 8 Z"></path>
   </g>
 
-  <!-- Halls (walls then floors) -->
-  {
-    [0, 1].map((pass) => (
-      <g class={pass === 0 ? 'sm-hall-wall' : 'sm-hall'}>
-        <path d="M 467 285 L 491 285" />
-        <path d="M 507 246 L 507 212 L 655 212" />
-        <path d="M 630 212 L 630 238" />
-        <path d="M 507 324 L 507 366 L 590 366" />
-        <path d="M 630 268 L 630 299" />
-        <path d="M 647 252 L 655 252 L 655 314 L 647 314" />
-        <path d="M 655 285 L 736 285" />
-      </g>
-    ))
-  }
+  <!-- Temple corridors (walls then floors) -->
+  {[0, 1].map((pass) => (
+    <g class={pass === 0 ? 'sm-hall-wall' : 'sm-hall'}>
+      <path d="M 400 285 L 425 285" />
+      <path d="M 462 285 L 496 285" />
+      <path d="M 512 238 L 512 200 L 582 200" />
+      <path d="M 605 226 L 620 240" />
+      <path d="M 586 282 L 612 260" />
+      <path d="M 626 278 L 630 294" />
+      <path d="M 648 300 L 692 292" />
+      <path d="M 512 330 L 512 360 L 584 368" />
+    </g>
+  ))}
 
   <!-- The broken black-stone gate -->
   <g class="sm-detail-fill" style="stroke:none;">
-    <rect x="392" y="250" width="9" height="24" rx="1"></rect>
-    <rect x="392" y="288" width="9" height="24" rx="1"></rect>
+    <rect x="395" y="252" width="9" height="26" rx="1"></rect>
+    <rect x="395" y="292" width="9" height="26" rx="1"></rect>
   </g>
-  <path class="sm-hall" d="M 400 281 L 424 281" style="stroke-width: 13;"></path>
 
   <!-- Rooms -->
-  <rect class="sm-floor" x="423" y="263" width="44" height="40" rx="3"></rect>
+  <rect class="sm-floor" x="425" y="268" width="38" height="36" rx="3"></rect>
   <!-- E5 · the octagonal temple hall of Abbathor -->
-  <path
-    class="sm-floor"
-    d="M 507 242 L 571 242 L 589 260 L 589 310 L 571 328 L 507 328 L 489 310 L 489 260 Z"></path>
-  <rect class="sm-floor" x="642" y="162" width="46" height="42" rx="3"></rect>
-  <rect class="sm-floor" x="613" y="238" width="34" height="28" rx="3"></rect>
-  <rect class="sm-floor" x="612" y="299" width="36" height="30" rx="3"></rect>
-  <rect class="sm-floor" x="591" y="362" width="42" height="36" rx="3"></rect>
-  <path
-    class="sm-floor"
-    d="M 754 251 L 802 251 L 818 267 L 818 303 L 802 319 L 754 319 L 738 303 L 738 267 Z"></path>
+  <path class="sm-floor"
+    d="M 510 236 L 570 236 L 586 252 L 586 314 L 570 330 L 510 330 L 494 314 L 494 252 Z"></path>
+  <rect class="sm-floor" x="580" y="188" width="44" height="42" rx="3"></rect>
+  <rect class="sm-floor" x="608" y="238" width="34" height="42" rx="3"></rect>
+  <rect class="sm-floor" x="612" y="290" width="36" height="34" rx="3"></rect>
+  <rect class="sm-floor" x="583" y="350" width="46" height="42" rx="3"></rect>
+  <!-- E11 · the far octagonal vault -->
+  <path class="sm-floor"
+    d="M 712 252 L 748 252 L 766 270 L 766 314 L 748 332 L 712 332 L 694 314 L 694 270 Z"></path>
 
-  <!-- Main chamber furniture: pillars and the altar -->
+  <!-- Main hall: inner sanctuary, pillars, altar -->
   <g class="sm-inner">
-    <circle cx="514" cy="265" r="5.5"></circle>
-    <circle cx="560" cy="265" r="5.5"></circle>
-    <circle cx="514" cy="305" r="5.5"></circle>
-    <circle cx="560" cy="305" r="5.5"></circle>
-    <rect x="573" y="277" width="8" height="16" rx="1"></rect>
+    <path d="M 540 244 L 584 244 L 584 322 L 540 322"></path>
+    <circle cx="506" cy="260" r="5.5"></circle>
+    <circle cx="528" cy="260" r="5.5"></circle>
+    <circle cx="506" cy="306" r="5.5"></circle>
+    <circle cx="528" cy="306" r="5.5"></circle>
+    <rect x="558" y="277" width="10" height="16" rx="1"></rect>
   </g>
 
   <!-- Secret doors found in Session 5 -->
-  <text class="sm-note" x="540" y="243">s</text>
-  <text class="sm-note" x="540" y="334">s</text>
+  <text class="sm-note" x="522" y="234">s</text>
+  <text class="sm-note" x="522" y="344">s</text>
 
   <!-- Doors -->
   <g class="sm-door">
-    <rect x="419" y="272" width="6" height="8"></rect>
-    <rect x="419" y="290" width="6" height="8"></rect>
-    <rect x="651" y="204" width="8" height="6"></rect>
-    <rect x="586" y="369" width="6" height="8"></rect>
-    <rect x="732" y="281" width="6" height="8"></rect>
+    <rect x="491" y="281" width="6" height="8"></rect>
+    <rect x="509" y="230" width="8" height="6"></rect>
+    <rect x="583" y="278" width="6" height="8"></rect>
+    <rect x="509" y="356" width="8" height="6"></rect>
+    <rect x="688" y="288" width="6" height="8"></rect>
   </g>
 
   <!-- Numbered points of interest -->
@@ -157,23 +145,23 @@ const rimTicks: [number, number, number][] = [
     <circle cx="172" cy="330" r="8"></circle><text x="172" y="330">1</text>
   </g>
   <g class="sm-poi" data-tip-title="Buried settlement" data-tip-sub="Ruins under Abbathor's avalanche">
-    <circle cx="232" cy="168" r="8"></circle><text x="232" y="168">2</text>
+    <circle cx="232" cy="184" r="8"></circle><text x="232" y="184">2</text>
   </g>
   <g class="sm-poi" data-tip-title="The broken gate" data-tip-sub="Black stone, long since shattered">
-    <circle cx="398" cy="234" r="8"></circle><text x="398" y="234">3</text>
+    <circle cx="416" cy="240" r="8"></circle><text x="416" y="240">3</text>
   </g>
   <g class="sm-poi danger" data-tip-title="Main chamber" data-tip-sub="The jelly fight; a pillar base hid the coffer">
-    <circle cx="535" cy="285" r="8"></circle><text x="535" y="285">4</text>
+    <circle cx="540" cy="285" r="8"></circle><text x="540" y="285">4</text>
   </g>
-  <g class="sm-poi danger" data-tip-title="Rubble hallway" data-tip-sub="The glint was one more jelly">
-    <circle cx="520" cy="196" r="8"></circle><text x="520" y="196">5</text>
+  <g class="sm-poi danger" data-tip-title="Rubble hallway" data-tip-sub="Behind the north secret door — the glint was one more jelly">
+    <circle cx="516" cy="200" r="8"></circle><text x="516" y="200">5</text>
   </g>
-  <g class="sm-poi" data-tip-title="South passage" data-tip-sub="A short walk to a still-closed door">
-    <circle cx="560" cy="344" r="8"></circle><text x="560" y="344">6</text>
+  <g class="sm-poi" data-tip-title="South passage" data-tip-sub="Behind the other secret door — a still-closed door waits">
+    <circle cx="556" cy="350" r="8"></circle><text x="556" y="350">6</text>
   </g>
 
   <!-- Scale -->
-  <g class="sm-scale" transform="translate(742 528)">
+  <g class="sm-scale" transform="translate(600 512)">
     <line x1="0" y1="0" x2="116" y2="0"></line>
     <line x1="0" y1="-4" x2="0" y2="4"></line>
     <line x1="116" y1="-4" x2="116" y2="4"></line>
@@ -181,7 +169,7 @@ const rimTicks: [number, number, number][] = [
   </g>
 
   <!-- Compass (bottom-right, as on the official excavation map) -->
-  <g class="m-compass" transform="translate(838 478)">
+  <g class="m-compass" transform="translate(772 468)">
     <circle r="18"></circle>
     <line x1="0" y1="13" x2="0" y2="-9"></line>
     <path class="m-compass-arrow" d="M0 -16 L5 -5 L0 -8 L-5 -5 Z"></path>
